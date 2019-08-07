@@ -1,2 +1,2 @@
 # mage-game
-mage game with balls
+mage game with ballzzzz
