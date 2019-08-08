@@ -51,7 +51,7 @@ function create() {
                       addPlayer(self, players[id]);
                   }
                   else {
-                      addOtherPlayers(self, players[id]);  
+                      addOtherPlayers(self, players[id]);
                   }
               });
       });
@@ -92,7 +92,7 @@ function create() {
         repeat: -1
     });
 
- 
+
     //</editor-fold> animations
     this.cursors = this.input.keyboard.addKeys({
         up: Phaser.Input.Keyboard.KeyCodes.W,
@@ -106,7 +106,7 @@ function create() {
 function update() {
 
     if (this.mage) {
-     
+
         this.mage.axis = new Phaser.Math.Vector2();
         let axis = this.mage.axis.normalize();
 
@@ -127,7 +127,6 @@ function update() {
         //from this directions, determine where the player would face
         if (this.mage.axis.x != 0 || this.mage.axis.y != 0) {
             this.mage.setVelocityX(game.player.speed * axis.x);
-            this.mage.setVelocityY(game.player.speed * axis.y);
             this.mage.setVelocityY(game.player.speed * axis.y);
             this.mage.anims.play('walk', true);
         }
@@ -158,7 +157,7 @@ function update() {
         // else if(this.cursors.up.isDown){
         //   this.mage.setVelocityY(-50);
         //   this.mage.anims.play('walk', true);
-        // }    
+        // }
     }
 }
 
