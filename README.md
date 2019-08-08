@@ -7,6 +7,9 @@ mage game with balls
 - orb grabbing/carry, synced with other clients as well
 - orb throwing (syncing to-do)
 - placeholder sounds for walking and orb throwing
+```
+
+```
 2019-08-08 3:44AM PHT
 - basic socket connection and player creation for clients and server
 - added basic movements for client-side
