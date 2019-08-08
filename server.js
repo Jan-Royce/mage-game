@@ -44,7 +44,10 @@ io.on('connection',function(socket){
     socket.broadcast.emit('playerIdled',players[socket.id]);
   });
 
-  // socket.on('orbCollect',function())
+  socket.on('orbCollect',function(orbId){
+    delete orbs[orbId]; //remove orb
+    socket.broadcast.emit('orbCollected', orbId);
+  });
 
   //generate orbs
   createOrb();

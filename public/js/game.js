@@ -87,6 +87,13 @@ function create() {
   this.socket.on('newOrb',function(newOrb){
     createOrbs(self, newOrb);
   });
+  this.socket.on('orbCollected',function(orbId){
+    self.orbs.getChildren().forEach(function(orb) {
+      if (orbId === orb.id) {
+          orb.destroy();
+      }
+    });
+  });
 
   this.socket.on('playerWalked',
   function(playerInfo){
@@ -160,7 +167,7 @@ function update() {
         let pointAxis = new Phaser.Geom.Point(axis.x, axis.y);
 
         let dir = Phaser.Math.Angle.BetweenPoints(pointOrigin, pointAxis);
-        console.log(Math.abs(Phaser.Math.RoundTo(dir)))
+        // console.log(Math.abs(Phaser.Math.RoundTo(dir)))
 
         //from this directions, determine where the player would face
         if (this.mage.axis.x != 0 || this.mage.axis.y != 0) {
@@ -207,10 +214,13 @@ function createOrbs(self, newOrb) {
   orb = self.orbs.create(newOrb.x, newOrb.y, 'orbs', newOrb.frameIndex);
   orb.id = newOrb.orbId;
   orb.type = newOrb.type;
-  self.physics.add.overlap(self.mage, self.orbs, function(orb){
-    // this.socket.emit('orbCollect');
-    console.log('touching an orb')
+  self.physics.add.overlap(self.mage, orb, function(mage,orb){
+    this.socket.emit('orbCollect',orb.id);
+    orb.destroy();
+    console.log(orb.id)
+    // console.log('touching an orb')
   }, null, self);
 }
+
 
 // ______________________
