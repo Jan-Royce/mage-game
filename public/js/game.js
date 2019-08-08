@@ -51,20 +51,23 @@ function create() {
   //<editor-fold> socket events
   this.socket.on('currentPlayers',
     function (players) {
-        Object.keys(players).forEach(
-            function (id) {
-                if (players[id].playerId === self.socket.id) {
-                    addPlayer(self, players[id]);
-                }
-                else {
-                    addOtherPlayers(self, players[id]);
-                }
-            });
+      Object.keys(players).forEach(
+        function (id) {
+            if (players[id].playerId === self.socket.id) {
+                addPlayer(self, players[id]);
+            }
+            else {
+                addOtherPlayers(self, players[id]);
+            }
+        });
     });
 
   this.socket.on('currentOrbs',
   function(orbs){
-    console.log(orbs)
+    Object.keys(orbs).forEach(
+      function (id) {
+        createOrbs(self, orbs[id]);
+      });
   });
 
   this.socket.on('newPlayer',
