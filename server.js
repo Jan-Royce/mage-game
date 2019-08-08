@@ -3,6 +3,7 @@ var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io').listen(server);
 var players = {};
+var orbs = {};
 
 app.use(express.static(__dirname + '/public'));
 
@@ -17,9 +18,9 @@ io.on('connection',function(socket){
     y: Math.floor(Math.random() * 500) + 50,
     playerId: socket.id
   };
-
   //send player object to the new player
   socket.emit('currentPlayers', players);
+  socket.emit('currentOrbs', orbs);
   //update other players with the new player
   socket.broadcast.emit('newPlayer', players[socket.id]);
 
@@ -42,8 +43,45 @@ io.on('connection',function(socket){
     //broadcast movement to other clients
     socket.broadcast.emit('playerIdled',players[socket.id]);
   });
+
+  // socket.on('orbCollect',function())
+
+  //generate orbs
+  createOrb();
 });//'connection' event
 
 server.listen(8081,function(){
   console.log(`Listening on ${server.address().port}`);
 });
+
+function createOrb(){
+  if(Object.keys(players).length > 0 &&
+  Object.keys(orbs).length < 10){
+    console.log("new orb!");
+    let orbId = uniqid();
+    orbs[orbId] = {
+      x: Math.floor(Math.random() * 700) + 50,
+      y: Math.floor(Math.random() * 500) + 50,
+      type: 'fire',
+      orbId: orbId,
+      frameIndex: Math.floor(Math.random() * 3)
+    };
+    io.emit('newOrb',orbs[orbId]);
+    setTimeout(createOrb,5000);
+  }
+}
+
+function uniqid(a = "",b = false){
+    var c = Date.now()/1000;
+    var d = c.toString(16).split(".").join("");
+    while(d.length < 14){
+        d += "0";
+    }
+    var e = "";
+    if(b){
+        e = ".";
+        var f = Math.round(Math.random()*100000000);
+        e += f;
+    }
+    return a + d + e;
+}

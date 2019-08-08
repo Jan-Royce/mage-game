@@ -37,88 +37,106 @@ function preload() {
 }
 
 function create() {
+  var self = this;
+  this.socket = io();
+  this.otherPlayers = this.physics.add.group();
+  this.orbs = this.physics.add.group({
+      key: 'orbs',
+      frame: [0, 1, 2],
+      frameQuantity: 0,
+      id: '0',
+      type: 'none'
+  });
 
-    var self = this;
-    this.socket = io();
-    this.otherPlayers = this.physics.add.group();
+  //<editor-fold> socket events
+  this.socket.on('currentPlayers',
+    function (players) {
+        Object.keys(players).forEach(
+            function (id) {
+                if (players[id].playerId === self.socket.id) {
+                    addPlayer(self, players[id]);
+                }
+                else {
+                    addOtherPlayers(self, players[id]);
+                }
+            });
+    });
 
-    //<editor-fold> socket events
-    this.socket.on('currentPlayers',
-      function (players) {
-          Object.keys(players).forEach(
-              function (id) {
-                  if (players[id].playerId === self.socket.id) {
-                      addPlayer(self, players[id]);
-                  }
-                  else {
-                      addOtherPlayers(self, players[id]);
-                  }
-              });
+  this.socket.on('currentOrbs',
+  function(orbs){
+    console.log(orbs)
+  });
+
+  this.socket.on('newPlayer',
+    function (playerInfo) {
+        addOtherPlayers(self, playerInfo);
+    });
+
+  this.socket.on('disconnect',
+  function (playerId) {
+      self.otherPlayers.getChildren().forEach(function (otherPlayer) {
+          if (playerId === otherPlayer.playerId) {
+              otherPlayer.destroy();
+          }
       });
+  });
 
-    this.socket.on('newPlayer',
-      function (playerInfo) {
-          addOtherPlayers(self, playerInfo);
-      });
+  this.socket.on('newOrb',function(newOrb){
+    createOrbs(self, newOrb);
+  });
 
-    this.socket.on('disconnect', function (playerId) {
-        self.otherPlayers.getChildren().forEach(function (otherPlayer) {
-            if (playerId === otherPlayer.playerId) {
-                otherPlayer.destroy();
-            }
-        });
+  this.socket.on('playerWalked',
+  function(playerInfo){
+    self.otherPlayers.getChildren().forEach(function(otherPlayer){
+      if(playerInfo.playerId === otherPlayer.playerId){
+        otherPlayer.setPosition(playerInfo.x,playerInfo.y);
+        otherPlayer.anims.play('walk', true);
+      }
     });
-
-    this.socket.on('playerWalked',function(playerInfo){
-      self.otherPlayers.getChildren().forEach(function(otherPlayer){
-        if(playerInfo.playerId === otherPlayer.playerId){
-          otherPlayer.setPosition(playerInfo.x,playerInfo.y);
-          otherPlayer.anims.play('walk', true);
-        }
-      });
+  });
+  this.socket.on('playerIdled',
+  function(playerInfo){
+    self.otherPlayers.getChildren().forEach(function(otherPlayer){
+      if(playerInfo.playerId === otherPlayer.playerId){
+        otherPlayer.setPosition(playerInfo.x,playerInfo.y);
+        otherPlayer.anims.play('idle', true);
+      }
     });
-    this.socket.on('playerIdled',function(playerInfo){
-      self.otherPlayers.getChildren().forEach(function(otherPlayer){
-        if(playerInfo.playerId === otherPlayer.playerId){
-          otherPlayer.setPosition(playerInfo.x,playerInfo.y);
-          otherPlayer.anims.play('idle', true);
-        }
-      });
-    });
+  });
 
-    //</editor-fold> socket events
+  //</editor-fold> socket events
 
-    //<editor-fold> animations
-    this.anims.create({
-        key: "idle",
-        frames: this.anims.generateFrameNumbers("player", {
-            start: 0,
-            end: 3
-        }),
-        frameRate: 8,
-        repeat: -1
-    });
+  //<editor-fold> animations
+  this.anims.create({
+      key: "idle",
+      frames: this.anims.generateFrameNumbers("player", {
+          start: 0,
+          end: 3
+      }),
+      frameRate: 8,
+      repeat: -1
+  });
 
-    this.anims.create({
-        key: "walk",
-        frames: this.anims.generateFrameNumbers("player", {
-            start: 4,
-            end: 9
-        }),
-        frameRate: 10,
-        repeat: -1
-    });
+  this.anims.create({
+      key: "walk",
+      frames: this.anims.generateFrameNumbers("player", {
+          start: 4,
+          end: 9
+      }),
+      frameRate: 10,
+      repeat: -1
+  });
 
 
-    //</editor-fold> animations
-    this.cursors = this.input.keyboard.addKeys({
-        up: Phaser.Input.Keyboard.KeyCodes.W,
-        down: Phaser.Input.Keyboard.KeyCodes.S,
-        left: Phaser.Input.Keyboard.KeyCodes.A,
-        right: Phaser.Input.Keyboard.KeyCodes.D
-    });
+  //</editor-fold> animations
+  this.cursors = this.input.keyboard.addKeys({
+      up: Phaser.Input.Keyboard.KeyCodes.W,
+      down: Phaser.Input.Keyboard.KeyCodes.S,
+      left: Phaser.Input.Keyboard.KeyCodes.A,
+      right: Phaser.Input.Keyboard.KeyCodes.D
+  });
 
-}
+}//create
 
 function update() {
 
@@ -177,12 +195,19 @@ function addPlayer(self, playerInfo) {
 }
 
 function addOtherPlayers(self, playerInfo) {
-    // const otherPlayer = self.+
     const otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'player').setOrigin(0, 0);//.setScale(2);
     otherPlayer.playerId = playerInfo.playerId;
     self.otherPlayers.add(otherPlayer);
 }
 
-
+function createOrbs(self, newOrb) {
+  orb = self.orbs.create(newOrb.x, newOrb.y, 'orbs', newOrb.frameIndex);
+  orb.id = newOrb.orbId;
+  orb.type = newOrb.type;
+  self.physics.add.overlap(self.mage, self.orbs, function(orb){
+    // this.socket.emit('orbCollect');
+    console.log('touching an orb')
+  }, null, self);
+}
 
 // ______________________
