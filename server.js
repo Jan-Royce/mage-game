@@ -29,6 +29,19 @@ io.on('connection',function(socket){
     //remove player from the other players
     io.emit('disconnect', socket.id);
   });
+
+  socket.on('playerWalk',function(newPosition){
+    players[socket.id].x = newPosition.x;
+    players[socket.id].y = newPosition.y;
+    //broadcast movement to other clients
+    socket.broadcast.emit('playerWalked',players[socket.id]);
+  });
+  socket.on('playerIdle',function(idlePosition){
+    players[socket.id].x = idlePosition.x;
+    players[socket.id].y = idlePosition.y;
+    //broadcast movement to other clients
+    socket.broadcast.emit('playerIdled',players[socket.id]);
+  });
 });//'connection' event
 
 server.listen(8081,function(){

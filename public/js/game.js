@@ -69,6 +69,23 @@ function create() {
         });
     });
 
+    this.socket.on('playerWalked',function(playerInfo){
+      self.otherPlayers.getChildren().forEach(function(otherPlayer){
+        if(playerInfo.playerId === otherPlayer.playerId){
+          otherPlayer.setPosition(playerInfo.x,playerInfo.y);
+          otherPlayer.anims.play('walk', true);
+        }
+      });
+    });
+    this.socket.on('playerIdled',function(playerInfo){
+      self.otherPlayers.getChildren().forEach(function(otherPlayer){
+        if(playerInfo.playerId === otherPlayer.playerId){
+          otherPlayer.setPosition(playerInfo.x,playerInfo.y);
+          otherPlayer.anims.play('idle', true);
+        }
+      });
+    });
+
     //</editor-fold> socket events
 
     //<editor-fold> animations
@@ -122,7 +139,7 @@ function update() {
         let pointAxis = new Phaser.Geom.Point(axis.x, axis.y);
 
         let dir = Phaser.Math.Angle.BetweenPoints(pointOrigin, pointAxis);
-        console.log(Phaser.Math.RoundTo(dir))
+        console.log(Math.abs(Phaser.Math.RoundTo(dir)))
 
         //from this directions, determine where the player would face
         if (this.mage.axis.x != 0 || this.mage.axis.y != 0) {
@@ -135,30 +152,23 @@ function update() {
             this.mage.anims.play('idle', true);
         }
 
+        var x = this.mage.x;
+        var y = this.mage.y;
+        var r = this.mage.rotation;
+        if(this.mage.oldPosition && (x!==this.mage.oldPosition.x||
+        y!==this.mage.oldPosition.y)){
+          this.socket.emit('playerWalk',{x:this.mage.x,y:this.mage.y});
+        }
+        else{
+          this.socket.emit('playerIdle',{x:this.mage.x,y:this.mage.y});
+        }
 
-        // this.mage.setVelocity(game.player.speed*axis);
-        // console.info(left,right,down,up);
-        // console.info(this.mage.axisX,this.mage.axisY);
-        // this.mage.setVelocity(game.player.speed*);
-        // if(this.cursors.left.isDown){
-        //   this.mage.setVelocityX(-50);
-        //   // this.mage.scaleX = -1;
-        //   this.mage.anims.play('walk', true);
-        // }
-        // else if(this.cursors.right.isDown){
-        //   this.mage.setVelocityX(50);
-        //   // this.mage.scaleX = 1;
-        //   this.mage.anims.play('walk', true);
-        // }
-        // else if(this.cursors.down.isDown){
-        //   this.mage.setVelocityY(50);
-        //   this.mage.anims.play('walk', true);
-        // }
-        // else if(this.cursors.up.isDown){
-        //   this.mage.setVelocityY(-50);
-        //   this.mage.anims.play('walk', true);
-        // }
-    }
+        //save old pos data
+        this.mage.oldPosition = {
+          x: this.mage.x,
+          y: this.mage.y
+        };
+    }//if this.mage
 }
 
 function addPlayer(self, playerInfo) {
