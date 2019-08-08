@@ -21,7 +21,8 @@ var config = {
 var game = new Phaser.Game(config);
 game.player = {
     canFire: true,
-    speed: 80
+    speed: 80,
+    orbs: 0
 };
 
 function preload() {
@@ -44,6 +45,7 @@ function create() {
       key: 'orbs',
       frame: [0, 1, 2],
       frameQuantity: 0,
+      frameIndex: 0,
       id: '0',
       type: 'none'
   });
@@ -202,11 +204,15 @@ function update() {
 function addPlayer(self, playerInfo) {
     self.mage = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'player').setOrigin(0, 0);//.setScale(2);
     self.mage.setCollideWorldBounds(true);
+    self.mage.setScale(2);
+    self.mage.setSize(8,14).setOffset(12,10);
 }
 
 function addOtherPlayers(self, playerInfo) {
     const otherPlayer = self.physics.add.sprite(playerInfo.x, playerInfo.y, 'player').setOrigin(0, 0);//.setScale(2);
     otherPlayer.playerId = playerInfo.playerId;
+    otherPlayer.setScale(2);
+    otherPlayer.setSize(8,14).setOffset(12,10);
     self.otherPlayers.add(otherPlayer);
 }
 
@@ -214,10 +220,13 @@ function createOrbs(self, newOrb) {
   orb = self.orbs.create(newOrb.x, newOrb.y, 'orbs', newOrb.frameIndex);
   orb.id = newOrb.orbId;
   orb.type = newOrb.type;
+  orb.frameIndex = newOrb.frameIndex;
+  orb.setCircle(8);
   self.physics.add.overlap(self.mage, orb, function(mage,orb){
     this.socket.emit('orbCollect',orb.id);
     orb.destroy();
     console.log(orb.id)
+    console.log(orb.frameIndex)
     // console.log('touching an orb')
   }, null, self);
 }

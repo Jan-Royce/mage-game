@@ -70,8 +70,8 @@ function createOrb(){
       frameIndex: Math.floor(Math.random() * 3)
     };
     io.emit('newOrb',orbs[orbId]);
-    setTimeout(createOrb,5000);
   }
+  setTimeout(createOrb,5000);
 }
 
 function uniqid(a = "",b = false){
