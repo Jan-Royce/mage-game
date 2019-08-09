@@ -3,6 +3,11 @@ mage game with balls
 
 ### Changelog: 
 ```
+2019-08-10 1:35AM PHT
+- orb throwing synced
+```
+
+```
 2019-08-08 6:57PM PHT
 - orb grabbing/carry, synced with other clients as well
 - orb throwing (syncing to-do)
