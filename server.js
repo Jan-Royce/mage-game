@@ -4,6 +4,7 @@ var server = require('http').Server(app);
 var io = require('socket.io').listen(server);
 var players = {};
 var orbs = {};
+var projectiles = {};
 
 app.use(express.static(__dirname + '/public'));
 
@@ -60,6 +61,15 @@ io.on('connection',function(socket){
     };
     socket.broadcast.emit('orbCollected', pickup);
   });
+  socket.on('orbThrow',function(orbData){
+    let throwInfo = orbData;
+    throwInfo.playerId = socket.id;
+    socket.broadcast.emit('orbThrown', throwInfo);
+  });
+  socket.on('orbThrowEnd',function(){
+    socket.broadcast.emit('orbThrownEnd', socket.id);
+  });
+
 
   //generate orbs
   createOrb();
@@ -73,7 +83,7 @@ function createOrb(){
   if(Object.keys(players).length > 0 &&
   Object.keys(orbs).length < 10){
     console.log("new orb!");
-    let orbId = uniqid();
+    let orbId = uniqid("orb-");
     orbs[orbId] = {
       x: Math.floor(Math.random() * 700) + 50,
       y: Math.floor(Math.random() * 500) + 50,

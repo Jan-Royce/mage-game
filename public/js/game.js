@@ -7,7 +7,7 @@ var config = {
     physics: {
         default: 'arcade',
         arcade: {
-            debug: false,
+            debug: true,
             gravity: { y: 0 }
         }
     },
@@ -49,6 +49,14 @@ function create() {
     primary: null
   });
   this.orbs = this.physics.add.group({
+      key: 'orbs',
+      frame: [0, 1, 2],
+      frameQuantity: 0,
+      frameIndex: 0,
+      id: '0',
+      type: 'none'
+  });
+  this.projectiles = this.physics.add.group({
       key: 'orbs',
       frame: [0, 1, 2],
       frameQuantity: 0,
@@ -101,10 +109,29 @@ function create() {
       if (pickUp.orbId === orb.id) {
         self.otherPlayers.getChildren().forEach(function (otherPlayer) {
           if (pickUp.playerId === otherPlayer.playerId) {
-            otherPlayer.primary = self.physics.add.sprite(otherPlayer.x+otherPlayer.x/3,otherPlayer.y,'orbs',orb.frameIndex);
+            let otherPlayerOrb = otherPlayer.primary = self.physics.add.sprite(otherPlayer.x+otherPlayer.x/3,otherPlayer.y,'orbs',orb.frameIndex);
+            otherPlayerOrb.setCircle(8);
           }
         });
         orb.destroy();
+      }
+    });
+  });
+  this.socket.on('orbThrown',
+  function(throwInfo){
+    self.otherPlayers.getChildren().forEach(function(otherPlayer){
+      if(throwInfo.playerId === otherPlayer.playerId){
+        otherPlayer.primary.x = throwInfo.x;
+        otherPlayer.primary.y = throwInfo.y;
+      }
+    });
+  });
+  this.socket.on('orbThrownEnd',
+  function(playerId){
+    self.otherPlayers.getChildren().forEach(function(otherPlayer){
+      if(playerId === otherPlayer.playerId){
+        otherPlayer.primary.destroy();
+        otherPlayer.primary = null;
       }
     });
   });
@@ -116,6 +143,7 @@ function create() {
         otherPlayer.setPosition(playerInfo.x,playerInfo.y);
         otherPlayer.flipX = playerInfo.flipX;
         otherPlayer.anims.play('walk', true);
+        if(otherPlayer.primary){otherPlayerPositionOrb(otherPlayer);}
       }
     });
   });
@@ -126,6 +154,7 @@ function create() {
         otherPlayer.setPosition(playerInfo.x,playerInfo.y);
         otherPlayer.flipX = playerInfo.flipX;
         otherPlayer.anims.play('idle', true);
+        if(otherPlayer.primary){otherPlayerPositionOrb(otherPlayer);}
       }
     });
   });
@@ -163,15 +192,17 @@ function create() {
   });
 
   this.input.on('pointerup', function(pointer){
-    if(game.player.primary){
+    if(game.player.primary && !self.mage.primary.thrown){
       let angle = Phaser.Math.Angle.BetweenPoints(game.player.primary, pointer);
       self.physics.velocityFromRotation(angle, 400, game.player.orbVelocity);
     }
   });
   this.input.on('pointerup', function () {
-    if(game.player.primary){
+    if(game.player.primary && !self.mage.primary.thrown){
       game.player.primary.setVelocity(game.player.orbVelocity.x, game.player.orbVelocity.y);
-      game.player.primary = null;
+      // console.log(game.player.primary);
+      // game.player.primary = null;
+      self.mage.primary.thrown = true;
       this.sound.play('shoot',{volume:.5});
     }
   }, this);
@@ -182,6 +213,7 @@ function create() {
 function update() {
 
     if (this.mage) {
+      //<editor-fold> movement stuff
       this.mage.axis = new Phaser.Math.Vector2();
 
       let left = this.cursors.left.isDown ? 1 : 0;
@@ -193,23 +225,12 @@ function update() {
       this.mage.axis.y = down - up;
       let axis = this.mage.axis.normalize();
 
-      let pointOrigin = new Phaser.Geom.Point(0, 0);
-      let pointAxis = new Phaser.Geom.Point(axis.x, axis.y);
-
-      let dir = Phaser.Math.Angle.BetweenPoints(pointOrigin, pointAxis);
-      // console.log(Math.abs(Phaser.Math.RoundTo(dir)))
-
-      //from this directions, determine where the player would face
       if (this.mage.axis.x != 0 || this.mage.axis.y != 0) {
           this.mage.setVelocityX(game.player.speed * axis.x);
           this.mage.setVelocityY(game.player.speed * axis.y);
           this.mage.anims.play('walk', true);
           this.mage.flipX = this.mage.axis.x<0?true:false;
           this.mage.setSize(8,14).setOffset(12,10);
-          // if(game.player.walkSound){
-          //   this.sound.play('step');
-          //   game.player.walkSound = false;
-          // }
           if(!game.player.walkSound.isPlaying){
             game.player.walkSound.play({delay:.1});
           }
@@ -237,30 +258,44 @@ function update() {
         y: this.mage.y,
         flipX: this.mage.flipX,
       };
+      //</editor-fold> movement stuff
 
       //primary orbs
-      if(game.player.primary){
-        if(this.mage.flipX){
-          game.player.primary.x = this.mage.x + this.mage.width/2;
-        }
-        else{
-          game.player.primary.x = this.mage.x + this.mage.width*1.5;
-        }
-        game.player.primary.y = this.mage.y + this.mage.height;
-      }
-
-      this.otherPlayers.getChildren().forEach(function(otherPlayer){
-        if(otherPlayer.primary){
-          if(otherPlayer.flipX){
-            otherPlayer.primary.x = otherPlayer.x + otherPlayer.width/2;
+      if(this.mage.primary){
+        if(!this.mage.primary.thrown){
+          if(this.mage.flipX){
+            game.player.primary.x = this.mage.x + this.mage.width/2;
           }
           else{
-            otherPlayer.primary.x = otherPlayer.x + otherPlayer.width*1.5;
+            game.player.primary.x = this.mage.x + this.mage.width*1.5;
           }
-          otherPlayer.primary.y = otherPlayer.y + otherPlayer.height;
+          game.player.primary.y = this.mage.y + this.mage.height;
         }
-      });
-
+        else{//projectile mid-air
+          var primaryX = game.player.primary.x;
+          var primaryY = game.player.primary.y;
+          if(primaryX <= game.config.width && primaryX > 0 &&
+          primaryY <= game.config.height && primaryY > 0){
+            if(this.mage.primary.oldPosition && (primaryX!==this.mage.primary.oldPosition.x||
+            primaryY!==this.mage.primary.oldPosition.y)){
+              this.socket.emit('orbThrow',{
+                x:game.player.primary.x,
+                y:game.player.primary.y
+              });
+            }
+            this.mage.primary.oldPosition = {
+              x: game.player.primary.x,
+              y: game.player.primary.y,
+            };
+          }//out of bounds check end
+          else{
+            this.socket.emit('orbThrowEnd');
+            game.player.primary.destroy();
+            game.player.primary = null;
+            this.mage.primary = null;
+          }
+        }
+    }
   }//if this.mage
 }//update
 
@@ -269,6 +304,7 @@ function addPlayer(self, playerInfo) {
     self.mage.setCollideWorldBounds(true);
     self.mage.setScale(2);
     self.mage.setSize(8,14).setOffset(12,10);
+    self.mage.primary = null;
 }
 
 function addOtherPlayers(self, playerInfo) {
@@ -278,8 +314,18 @@ function addOtherPlayers(self, playerInfo) {
     otherPlayer.setSize(8,14).setOffset(12,10);
     self.otherPlayers.add(otherPlayer);
     if(playerInfo.primary){
-      otherPlayer.primary = self.physics.add.sprite(otherPlayer.x+otherPlayer.x/3,otherPlayer.y,'orbs',playerInfo.primary.frameIndex);
+      let otherPlayerOrb = otherPlayer.primary = self.physics.add.sprite(otherPlayer.x+otherPlayer.x/3,otherPlayer.y,'orbs',playerInfo.primary.frameIndex);
+      otherPlayerOrb.setCircle(8);
     }
+}
+function otherPlayerPositionOrb(otherPlayer){
+  if(otherPlayer.flipX){
+    otherPlayer.primary.x = otherPlayer.x + otherPlayer.width/2;
+  }
+  else{
+    otherPlayer.primary.x = otherPlayer.x + otherPlayer.width*1.5;
+  }
+  otherPlayer.primary.y = otherPlayer.y + otherPlayer.height;
 }
 
 function createOrbs(self, newOrb) {
@@ -291,16 +337,21 @@ function createOrbs(self, newOrb) {
   orb.depth = orb.y + orb.height / 4;
 
   self.physics.add.overlap(self.mage, orb, function(mage,orb){
-    let orbProp = {
-      id: orb.id,
-      frameIndex: orb.frameIndex
-    };
-    this.socket.emit('orbCollect',orbProp);
-    game.player.primary = self.physics.add.sprite(self.mage.x+self.mage.x/3,self.mage.y,'orbs',orb.frameIndex);
-    game.player.primary.setCircle(8);
-    orb.destroy();
-    console.log(orb.id)
-    console.log(orb.frameIndex)
+    if(!self.mage.primary){//temp check before 2nd orb implementation
+      //put check here for orb count
+      let orbProp = {
+        id: orb.id,
+        frameIndex: orb.frameIndex
+      };
+      this.socket.emit('orbCollect',orbProp);
+      game.player.primary = self.projectiles.create(self.mage.x+self.mage.x/3, self.mage.y, 'orbs', orb.frameIndex);
+      game.player.primary.setCircle(8);
+      self.mage.primary = orbProp;
+      self.mage.primary.thrown = false;
+      orb.destroy();
+      // console.log(orb.id)
+      // console.log(orb.frameIndex)
+    }
   }, null, self);
 }
 
