@@ -16,6 +16,8 @@ io.on('connection',function(socket){
   players[socket.id] = {
     x: Math.floor(Math.random() * 700) + 50,
     y: Math.floor(Math.random() * 500) + 50,
+    flipX: false,
+    primary: null,
     playerId: socket.id
   };
   //send player object to the new player
@@ -34,19 +36,29 @@ io.on('connection',function(socket){
   socket.on('playerWalk',function(newPosition){
     players[socket.id].x = newPosition.x;
     players[socket.id].y = newPosition.y;
+    players[socket.id].flipX = newPosition.flipX;
     //broadcast movement to other clients
     socket.broadcast.emit('playerWalked',players[socket.id]);
   });
   socket.on('playerIdle',function(idlePosition){
     players[socket.id].x = idlePosition.x;
     players[socket.id].y = idlePosition.y;
+    players[socket.id].flipX = idlePosition.flipX;
     //broadcast movement to other clients
     socket.broadcast.emit('playerIdled',players[socket.id]);
   });
 
-  socket.on('orbCollect',function(orbId){
-    delete orbs[orbId]; //remove orb
-    socket.broadcast.emit('orbCollected', orbId);
+  socket.on('orbCollect',function(orbProp){
+    delete orbs[orbProp.id]; //remove orb
+    players[socket.id].primary = {
+      id: orbProp.id,
+      frameIndex: orbProp.frameIndex
+    };
+    let pickup = {
+      orbId: orbProp.id,
+      playerId: socket.id
+    };
+    socket.broadcast.emit('orbCollected', pickup);
   });
 
   //generate orbs
