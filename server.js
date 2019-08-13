@@ -72,14 +72,15 @@ io.on('connection',function(socket){
 
 
   //generate orbs
-  createOrb();
+  generateOrb();
 });//'connection' event
 
 server.listen(8081,function(){
   console.log(`Listening on ${server.address().port}`);
 });
 
-function createOrb(){
+function generateOrb(){
+  // if(Object.keys(players).length > 1 &&
   if(Object.keys(players).length > 0 &&
   Object.keys(orbs).length < 10){
     console.log("new orb!");
@@ -87,13 +88,13 @@ function createOrb(){
     orbs[orbId] = {
       x: Math.floor(Math.random() * 700) + 50,
       y: Math.floor(Math.random() * 500) + 50,
-      type: 'fire',
+      // type: 'fire',
       orbId: orbId,
       frameIndex: Math.floor(Math.random() * 3)
     };
     io.emit('newOrb',orbs[orbId]);
   }
-  setTimeout(createOrb,5000);
+  setTimeout(generateOrb,5000);
 }
 
 function uniqid(a = "",b = false){

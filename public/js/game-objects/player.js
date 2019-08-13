@@ -19,6 +19,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.speed = 80;
     this.setScale(2);
     this.setSize(8,14).setOffset(12,10);
+    this.orb1 = null;
+    this.orb2 = null;
+    this.setCollideWorldBounds(true);
+    // this.tint = Math.random() * 0xffffff;
   }
 
   preload(scene){
@@ -55,7 +59,60 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       RIGHT: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
     }
 
+    // this.walkSound = this.sound.add('step');
     this.walkSound = scene.sound.add(CST.AUDIO.STEP);
+
+    scene.pickupSound = scene.sound.add(CST.AUDIO.PICKUP);
+
+    scene.physics.add.overlap(scene.allOrbs,this,function(mage, orb){
+      if(!orb.fired){//not fired
+        if(!mage.orb1){
+          scene.pickupSound.play({volume:.5});
+          mage.orb1 = orb;
+          // orb.destroy();
+          orb.body.enable = false;
+          orb.setActive(false).setVisible(false);
+          // console.log(orb)
+          let orbProp = {
+            id: orb.id,
+            frameIndex: orb.frameIndex
+          };
+          this.socket.emit('orbCollect',orbProp);//change to different events
+        }
+        else if(mage.orb1.level < 3 && mage.orb1.type == orb.type){
+          scene.pickupSound.play({volume:.5});
+          mage.orb1.level = Math.min(mage.orb1.level+orb.level,3);
+          orb.destroy();
+          // this.socket.emit('orbCollect',orbProp);//change to different events
+        }
+        else if(!mage.orb2){
+          scene.pickupSound.play({volume:.5});
+          mage.orb2 = orb;
+          // orb.destroy();
+          orb.body.enable = false;
+          orb.setActive(false).setVisible(false);
+          let orbProp = {
+            id: orb.id,
+            frameIndex: orb.frameIndex
+          };
+          this.socket.emit('orbCollect',orbProp);//change to different events
+        }
+        else if(mage.orb2.level < 3 && mage.orb2.type == orb.type){
+          scene.pickupSound.play({volume:.5});
+          mage.orb2.level = Math.min(mage.orb2.level+orb.level,3);
+          orb.destroy();
+          // this.socket.emit('orbCollect',orbProp);//change to different events
+        }
+        if(mage.orb1){console.log("orb1: ",mage.orb1.id,mage.orb1.type," : ",mage.orb1.level);}
+        if(mage.orb2){console.log("orb2: ",mage.orb2.id,mage.orb2.type," : ",mage.orb2.level);}
+      }//not fired
+      else{//fired
+        //orb effect on player that's hit
+        //temp lol
+        mage.scaleX -= mage.scaleX/128;
+        mage.scaleY -= mage.scaleY/128;
+      }
+    }, null, scene);//player-orb overlap
   }
 
   update(){
@@ -70,6 +127,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.flipX = this.axis.x > 0 ? false :
                  this.axis.x < 0 ? true :
                  this.flipX;
+    
     let axis = this.axis.normalize();
 
     this.setVelocityX(this.speed * axis.x);

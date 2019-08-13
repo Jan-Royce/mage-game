@@ -5,7 +5,9 @@ export const CST = {
 
     AUDIO:{
       SHOOT: "shoot.wav",
-      STEP: "step.wav"
+      STEP: "step.wav",
+      PICKUP: "pickup.wav",
+      POP: "pop.wav"
     },
 
     SPRITE:{
