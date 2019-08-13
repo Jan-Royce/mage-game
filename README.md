@@ -3,6 +3,18 @@ mage game with balls
 
 ### Changelog: 
 ```
+2019-08-13 10:36 PHT
+- converted most stuff to OOP
+- orb-player collision: pickup
+  - primary & secondary orb pickup
+  - orb stacking
+- orb-player collision: getting hit by orb projectile placeholder effect
+- orb-orb collision: stacking and destruction
+- socket events for everything mentioned above (TO-DO)
+- orb carry display (to-do)
+```
+
+```
 2019-08-10 1:35AM PHT
 - orb throwing synced
 ```
