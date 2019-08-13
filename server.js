@@ -34,19 +34,19 @@ io.on('connection',function(socket){
     io.emit('disconnect', socket.id);
   });
 
-  socket.on('playerWalk',function(newPosition){
+  socket.on('playerMovement',function(newPosition){
     players[socket.id].x = newPosition.x;
     players[socket.id].y = newPosition.y;
     players[socket.id].flipX = newPosition.flipX;
     //broadcast movement to other clients
-    socket.broadcast.emit('playerWalked',players[socket.id]);
+    socket.broadcast.emit('playerMoved',players[socket.id]);
   });
-  socket.on('playerIdle',function(idlePosition){
+  socket.on('playerStop',function(idlePosition){
     players[socket.id].x = idlePosition.x;
     players[socket.id].y = idlePosition.y;
     players[socket.id].flipX = idlePosition.flipX;
     //broadcast movement to other clients
-    socket.broadcast.emit('playerIdled',players[socket.id]);
+    socket.broadcast.emit('playerStopped',players[socket.id]);
   });
 
   socket.on('orbCollect',function(orbProp){
