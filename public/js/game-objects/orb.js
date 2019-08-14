@@ -6,6 +6,7 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
     scene.sys.displayList.add(this);
     scene.physics.world.enableBody(this, 0);
     this.socket = scene.socket;
+
     this.init(x,y,id);
     this.preload(scene);
     this.create(scene);

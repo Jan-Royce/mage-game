@@ -183,14 +183,22 @@ export class GameScene extends Phaser.Scene{
   create(){
     var self = this;
 
-    this.enemyMages = this.physics.add.group({
-      primary: null,
-    });
+    this.enemyMages = this.physics.add.group();
     this.allOrbs = this.physics.add.group();
     this.sockets()
     //this.mage = this.physics.add.sprite(50, 50, CST.SPRITE.PLAYER);
 
-
+    this.input.on('pointerup', function(pointer){
+      if(self.mage.orb1){
+        self.mage.orb1.throwOrb(self,pointer);
+        self.mage.orb1 = null;
+        if(self.mage.orb2){
+          self.mage.orb1 = self.mage.orb2;
+          self.mage.orb2 = null;
+        }
+      }
+      if(self.mage.orb1){console.log("orb1: ",self.mage.orb1.type," : ",self.mage.orb1.level);}
+      if(self.mage.orb2){console.log("orb2: ",self.mage.orb2.type," : ",self.mage.orb2.level);}
 
       //   let newOrb = {
       //     x: pointer.x,
@@ -199,21 +207,13 @@ export class GameScene extends Phaser.Scene{
       //     orbId: Math.floor(Math.random() * 1000)
       //   };
       //   createOrb_click(self, newOrb);
-
+    });
   }
 
 
   update(){
     if(this.mage){
-      this.mage.update(this);
-      this.enemyMages.getChildren().forEach((enemy) =>{
-        if(enemy.primary){
-          enemy.primary.x = enemy.flipX ? enemy.x - 10 :
-                            !enemy.flipX ? enemy.x + 10 :
-                            enemy.primary.x;
-          enemy.primary.y = enemy.y
-        }
-      })
+      this.mage.update();
     }
  }
 
@@ -256,11 +256,12 @@ export class GameScene extends Phaser.Scene{
       this.socket.on('orbCollected',function(pickUp){
         self.allOrbs.getChildren().forEach(function(orb) {
           if (pickUp.orbId === orb.id) {
-            self.enemyMages.getChildren().forEach(function (otherPlayer) {
-             if (pickUp.playerId === otherPlayer.playerId) {
-                otherPlayer.primary = new Orb(self, otherPlayer.x,otherPlayer.y,'orbs', orb.frame.name);
-             }
-            });
+            // self.otherPlayers.getChildren().forEach(function (otherPlayer) {
+            //   if (pickUp.playerId === otherPlayer.playerId) {
+            //     let otherPlayerOrb = otherPlayer.primary = self.physics.add.sprite(otherPlayer.x+otherPlayer.x/3,otherPlayer.y,'orbs',orb.frameIndex);
+            //     otherPlayerOrb.setCircle(8);
+            //   }
+            // });
             orb.destroy();
           }
         });
@@ -275,7 +276,6 @@ export class GameScene extends Phaser.Scene{
           }
         });
       });
-
       this.socket.on('playerStopped', (playerInfo) => {
         self.enemyMages.getChildren().forEach(function(otherPlayer){
           if(playerInfo.playerId === otherPlayer.playerId){
@@ -298,7 +298,6 @@ function addOtherPlayers(self, playerInfo){
   otherPlayer.playerId = playerInfo.playerId;
   otherPlayer.setScale(2);
   otherPlayer.setSize(8,14).setOffset(12,10);
-
   self.enemyMages.add(otherPlayer);
 }
 
