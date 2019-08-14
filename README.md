@@ -2,8 +2,18 @@
 mage game with balls
 
 ### Changelog: 
+
 ```
-2019-08-13 10:36 PHT
+2019-08-14 7:09PM PHT
+- synced secondary pickup and position
+- synced primary and secondary orb stacking
+- synced orb throwing (projectile & replacing primary w/ secondary)
+- synced orb-orb collision
+- synced projectile-player collision
+```
+
+```
+2019-08-13 10:36PM PHT
 - converted most stuff to OOP
 - orb-player collision: pickup
   - primary & secondary orb pickup
