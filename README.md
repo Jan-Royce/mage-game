@@ -1,7 +1,13 @@
 # mage-game
 mage game with balls
 
-### Changelog: 
+### Changelog:
+```
+2019-08-14 
+- Resync orb grabbing 
+- Display orb carry for both primary and secondary
+- Added animations for orb inventory
+```
 ```
 2019-08-13 10:36 PHT
 - converted most stuff to OOP
