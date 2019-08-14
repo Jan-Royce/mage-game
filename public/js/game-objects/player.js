@@ -64,15 +64,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     scene.input.on('pointerup', function(pointer){
       if(self.orb1){
-        self.orb1.throwOrb(scene,pointer);
-        self.orb1 = null;
-        if(self.orb2){
-          self.orb1 = self.orb2;
-          self.orb2 = null;
+          self.orb1.throwOrb(scene,pointer);
+          self.orb1 = null;
+          if(self.orb2){
+            self.orb1 = self.orb2;
+            self.orb2 = null;
+            scene.socket.emit('primaryThrow');
+          }
         }
-        }
-      })
-      if(self.orb1){console.log("orb1: ",self.orb1.type," : ",self.orb1.level)}
+      });
+      if(self.orb1){console.log("orb1: ",self.orb1.type," : ",self.orb1.level);}
       if(self.orb2){console.log("orb2: ",self.orb2.type," : ",self.orb2.level);}
 
     // this.walkSound = this.sound.add('step');
@@ -81,55 +82,73 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.pickupSound = scene.sound.add(CST.AUDIO.PICKUP);
 
     scene.physics.add.overlap(scene.allOrbs,this,function(mage, orb){
-      if(!orb.fired){//not fired
-        if(!mage.orb1){
-          scene.pickupSound.play({volume:.5});
-          mage.orb1 = new Orb(scene, mage.x, mage.y, orb.texture.key, orb.frame.name);
-          orb.destroy();
-          //orb.body.enable = false;
-          //orb.setActive(false).setVisible(false);
-          // console.log(orb)
-          let orbProp = {
-            id: orb.id,
-            frameIndex: orb.frameIndex
-          };
-          this.socket.emit('orbCollect',orbProp);//change to different events
-        }
-        else if(mage.orb1.level < 3 && mage.orb1.type == orb.type){
-          scene.pickupSound.play({volume:.5});
-          mage.orb1.level = Math.min(mage.orb1.level+orb.level,3);
-          orb.destroy();
-          // this.socket.emit('orbCollect',orbProp);//change to different events
-        }
-        else if(!mage.orb2){
-          scene.pickupSound.play({volume:.5});
-          mage.orb2 = new Orb(scene, mage.x, mage.y, orb.texture.key, orb.frame.name);
-
-          orb.destroy();
-          //orb.body.enable = false;
-          //orb.setActive(false).setVisible(false);
-          let orbProp = {
-            id: orb.id,
-            frameIndex: orb.frameIndex
-          };
-          this.socket.emit('orbCollect',orbProp);//change to different events
-        }
-        else if(mage.orb2.level < 3 && mage.orb2.type == orb.type){
-          scene.pickupSound.play({volume:.5});
-          mage.orb2.level = Math.min(mage.orb2.level+orb.level,3);
-          orb.destroy();
-          // this.socket.emit('orbCollect',orbProp);//change to different events
-        }
-        if(mage.orb1){console.log("orb1: ",mage.orb1.id,mage.orb1.type," : ",mage.orb1.level);}
-        if(mage.orb2){console.log("orb2: ",mage.orb2.id,mage.orb2.type," : ",mage.orb2.level);}
-      }//not fired
-      else{//fired
-        //orb effect on player that's hit
-        //temp lol
-        mage.scaleX -= mage.scaleX/128;
-        mage.scaleY -= mage.scaleY/128;
+      if(!mage.orb1){
+        scene.pickupSound.play({volume:.5});
+        mage.orb1 = new Orb(scene, mage.x, mage.y, orb.texture.key, orb.frame.name, orb.id, orb.level);
+        orb.destroy();
+        //orb.body.enable = false;
+        //orb.setActive(false).setVisible(false);
+        // console.log(orb)
+        let orbProp = {
+          id: orb.id,
+          frameIndex: orb.frameIndex,
+          type: orb.type
+        };
+        this.socket.emit('orbGetPrimary',orbProp);
       }
+      else if(mage.orb1.level < 3 && mage.orb1.type == orb.type){
+        scene.pickupSound.play({volume:.5});
+        mage.orb1.level = Math.min(mage.orb1.level+orb.level,3);
+        orb.destroy();
+        let orbProp = {
+          id: mage.orb1.id,
+          stack: orb.id,
+          frameIndex: mage.orb1.frameIndex,
+          type: mage.orb1.type,
+          level: mage.orb1.level
+        };
+        this.socket.emit('orbStackPrimary',orbProp);
+      }
+      else if(!mage.orb2){
+        scene.pickupSound.play({volume:.5});
+        mage.orb2 = new Orb(scene, mage.x, mage.y, orb.texture.key, orb.frame.name, orb.id, orb.level);
+
+        orb.destroy();
+        //orb.body.enable = false;
+        //orb.setActive(false).setVisible(false);
+        let orbProp = {
+          id: orb.id,
+          frameIndex: orb.frameIndex
+        };
+        this.socket.emit('orbGetSecondary',orbProp);
+      }
+      else if(mage.orb2.level < 3 && mage.orb2.type == orb.type){
+        scene.pickupSound.play({volume:.5});
+        mage.orb2.level = Math.min(mage.orb2.level+orb.level,3);
+        orb.destroy();
+        let orbProp = {
+          id: mage.orb2.id,
+          stack: orb.id,
+          frameIndex: mage.orb2.frameIndex,
+          type: mage.orb2.type,
+          level: mage.orb2.level
+        };
+        this.socket.emit('orbStackSecondary',orbProp);
+      }
+      if(mage.orb1){console.log("orb1: ",mage.orb1.id,mage.orb1.type," : ",mage.orb1.level);}
+      if(mage.orb2){console.log("orb2: ",mage.orb2.id,mage.orb2.type," : ",mage.orb2.level);}
     }, null, scene);//player-orb overlap
+
+    scene.physics.add.overlap(this,scene.orbProjectiles,function(mage, projectile){
+      // console.log(projectile)
+      //orb effect on player that's hit
+      //temp lol
+      // mage.scaleX -= mage.scaleX/96;
+      // mage.scaleY -= mage.scaleY/96;
+      mage.tint = Math.random() * 0xffffff;
+      this.socket.emit('projectileDestroy',projectile.id);
+      projectile.destroy();
+    }, null, scene);//player-projectile overlap
   }
 
   update(scene){
@@ -152,11 +171,35 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     if (this.axis.x == 0 && this.axis.y == 0) {
       this.anims.play('idle', true);
-      this.socket.emit('playerStop', this);
+      var position = {
+        x: this.x,
+        y: this.y,
+        flipX: this.flipX,
+        orb2: {}
+      };
+      if(this.orb2){
+        position.orb2.x = this.orb2.x;
+        position.orb2.y = this.orb2.y;
+        position.orb2.scaleX = this.orb2.scaleX;
+        position.orb2.scaleY = this.orb2.scaleY;
+      }
+      this.socket.emit('playerStop', position);
     }
     else {
       this.anims.play('walk', true);
-      this.socket.emit('playerMovement', this);
+      var position = {
+        x: this.x,
+        y: this.y,
+        flipX: this.flipX,
+        orb2: {}
+      };
+      if(this.orb2){
+        position.orb2.x = this.orb2.x;
+        position.orb2.y = this.orb2.y;
+        position.orb2.scaleX = this.orb2.scaleX;
+        position.orb2.scaleY = this.orb2.scaleY;
+      }
+      this.socket.emit('playerMovement', position);
       if(!this.walkSound.isPlaying){
         this.walkSound.play({delay:.1});
       }

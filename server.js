@@ -18,7 +18,8 @@ io.on('connection',function(socket){
     x: Math.floor(Math.random() * 700) + 50,
     y: Math.floor(Math.random() * 500) + 50,
     flipX: false,
-    primary: null,
+    primary: {},
+    secondary: {},
     playerId: socket.id
   };
   //send player object to the new player
@@ -38,6 +39,12 @@ io.on('connection',function(socket){
     players[socket.id].x = newPosition.x;
     players[socket.id].y = newPosition.y;
     players[socket.id].flipX = newPosition.flipX;
+    if(Object.keys(newPosition.orb2).length>0){
+      players[socket.id].secondary.x = newPosition.orb2.x;
+      players[socket.id].secondary.y = newPosition.orb2.y;
+      players[socket.id].secondary.scaleX = newPosition.orb2.scaleX;
+      players[socket.id].secondary.scaleY = newPosition.orb2.scaleY;
+    }
     //broadcast movement to other clients
     socket.broadcast.emit('playerMoved',players[socket.id]);
   });
@@ -45,11 +52,17 @@ io.on('connection',function(socket){
     players[socket.id].x = idlePosition.x;
     players[socket.id].y = idlePosition.y;
     players[socket.id].flipX = idlePosition.flipX;
+    if(Object.keys(idlePosition.orb2).length>0){
+      players[socket.id].secondary.x = idlePosition.orb2.x;
+      players[socket.id].secondary.y = idlePosition.orb2.y;
+      players[socket.id].secondary.scaleX = idlePosition.orb2.scaleX;
+      players[socket.id].secondary.scaleY = idlePosition.orb2.scaleY;
+    }
     //broadcast movement to other clients
     socket.broadcast.emit('playerStopped',players[socket.id]);
   });
 
-  socket.on('orbCollect',function(orbProp){
+  socket.on('orbGetPrimary',function(orbProp){
     delete orbs[orbProp.id]; //remove orb
     players[socket.id].primary = {
       id: orbProp.id,
@@ -59,16 +72,61 @@ io.on('connection',function(socket){
       orbId: orbProp.id,
       playerId: socket.id
     };
-    socket.broadcast.emit('orbCollected', pickup);
+    socket.broadcast.emit('orbGotPrimary', pickup);
   });
-  socket.on('orbThrow',function(orbData){
-    let throwInfo = orbData;
-    throwInfo.playerId = socket.id;
-    socket.broadcast.emit('orbThrown', throwInfo);
+  socket.on('orbStackPrimary',function(orbProp){
+    delete orbs[orbProp.stack];
+    players[socket.id].primary.level = orbProp.level;
+    let pickup = {
+      playerId: socket.id,
+      stack: orbProp.stack,
+      level: orbProp.level,
+    };
+    socket.broadcast.emit('orbStackedPrimary', pickup);
   });
-  socket.on('orbThrowEnd',function(){
-    socket.broadcast.emit('orbThrownEnd', socket.id);
+  socket.on('orbGetSecondary',function(orbProp){
+    delete orbs[orbProp.id]; //remove orb
+    players[socket.id].secondary = {
+      id: orbProp.id,
+      frameIndex: orbProp.frameIndex
+    };
+    let pickup = {
+      orbId: orbProp.id,
+      playerId: socket.id
+    };
+    socket.broadcast.emit('orbGotSecondary', pickup);
   });
+  socket.on('orbStackSecondary',function(orbProp){
+    delete orbs[orbProp.stack];
+    players[socket.id].secondary.level = orbProp.level;
+    let pickup = {
+      playerId: socket.id,
+      stack: orbProp.stack,
+      level: orbProp.level,
+    };
+    socket.broadcast.emit('orbStackedSecondary', pickup);
+  });
+
+  socket.on('primaryThrow',function(id){
+    socket.broadcast.emit('primaryThrown', socket.id);
+  });
+  socket.on('projectileCreate',function(id){
+    socket.broadcast.emit('projectileCreated', id);
+  });
+  socket.on('projectileMove',function(projectile){
+    socket.broadcast.emit('projectileMoved', projectile);
+  });
+  socket.on('projectileDestroy',function(id){
+    socket.broadcast.emit('projectileDestroyed', id);
+  });
+
+  socket.on('orbDestroy',function(id){
+    socket.broadcast.emit('orbDestroyed', id);
+  });
+  socket.on('orbLevelChange',function(orbInfo){
+    socket.broadcast.emit('orbLevelChanged', orbInfo);
+  });
+
 
 
   //generate orbs
