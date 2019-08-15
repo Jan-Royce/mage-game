@@ -18,9 +18,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.x = x;
     this.y = y;
     this.axis = new Phaser.Math.Vector2();
-    this.speed = 80;
+    this.speed = 120;
     this.setScale(2);
-    this.setSize(8,14).setOffset(12,10);
+    this.setSize(8,21).setOffset(12,5);
     this.orb1 = null;
     this.orb2 = null;
     this.setCollideWorldBounds(true);
@@ -59,17 +59,20 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       UP: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
       DOWN: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
       LEFT: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
-      RIGHT: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
+      RIGHT: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+      CHANGE: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q)
     }
 
     scene.input.on('pointerup', function(pointer){
-      if(self.orb1){
+      if(self.orb1 && self.orb1.scaleX >= 1.19){
           self.orb1.throwOrb(scene,pointer);
+          self.orb1.update(scene);
           self.orb1 = null;
           if(self.orb2){
             self.orb1 = self.orb2;
+            self.orb1.x = 0;
             self.orb2 = null;
-            scene.socket.emit('primaryThrow');
+            self.socket.emit('primaryThrow');
           }
         }
       });
@@ -139,7 +142,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       if(mage.orb2){console.log("orb2: ",mage.orb2.id,mage.orb2.type," : ",mage.orb2.level);}
     }, null, scene);//player-orb overlap
 
-    scene.physics.add.overlap(this,scene.orbProjectiles,function(mage, projectile){
+    scene.physics.add.overlap(this,scene.enemyProjectiles,function(mage, projectile){
       // console.log(projectile)
       //orb effect on player that's hit
       //temp lol
@@ -152,10 +155,63 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   update(scene){
+
     let up = this.keys.UP.isDown;
     let down = this.keys.DOWN.isDown;
     let left = this.keys.LEFT.isDown;
     let right = this.keys.RIGHT.isDown;
+
+    if(Phaser.Input.Keyboard.JustDown(this.keys.CHANGE)){
+      var temp = this.orb1;
+      this.orb1 = this.orb2;
+      this.orb2 = temp;
+      this.socket.emit('orbSwap');
+    }
+
+      if(this.orb1){
+
+        scene.tweens.add({
+          targets     : [ this.orb1 ],
+          scaleX: 1.2,
+          scaleY: 1.2,
+          ease        : 'Linear',
+          duration    : 300,
+
+        });
+
+        this.orb1.x = this.flipX ?  this.x + 10 :
+                      !this.flipX ?  this.x - 10 :
+                      this.orb1.x;
+        this.orb1.y = this.y;
+      }
+
+      if(this.orb2 != null){
+        scene.tweens.add({
+          targets     : [ this.orb2 ],
+          scaleX      : 0.70,
+          scaleY      : 0.70,
+          ease        : 'Linear',
+        })
+
+        scene.tweens.add({
+          targets     : [ this.orb2 ],
+          y           : this.y - 10,
+          ease        : 'Linear',
+          duration    : 300
+
+        });
+
+        scene.tweens.add({
+          targets     : [ this.orb2 ],
+          x           : !this.flipX ? this.x - 10 :
+                        this.flipX ?  this.x + 10 :
+                        this.orb2.x,
+          ease        : 'Linear',
+          duration    : 500
+        })
+      }
+
+
 
     this.axis.x = right - left;
     this.axis.y = down - up;
@@ -168,95 +224,29 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     this.setVelocityX(this.speed * axis.x);
     this.setVelocityY(this.speed * axis.y);
+    var position = {
+      x: this.x,
+      y: this.y,
+      flipX: this.flipX,
+      orb2: this.orb2
+    };
 
     if (this.axis.x == 0 && this.axis.y == 0) {
       this.anims.play('idle', true);
-      var position = {
-        x: this.x,
-        y: this.y,
-        flipX: this.flipX,
-        orb2: {}
-      };
-      if(this.orb2){
-        position.orb2.x = this.orb2.x;
-        position.orb2.y = this.orb2.y;
-        position.orb2.scaleX = this.orb2.scaleX;
-        position.orb2.scaleY = this.orb2.scaleY;
-      }
       this.socket.emit('playerStop', position);
     }
     else {
       this.anims.play('walk', true);
-      var position = {
-        x: this.x,
-        y: this.y,
-        flipX: this.flipX,
-        orb2: {}
-      };
-      if(this.orb2){
-        position.orb2.x = this.orb2.x;
-        position.orb2.y = this.orb2.y;
-        position.orb2.scaleX = this.orb2.scaleX;
-        position.orb2.scaleY = this.orb2.scaleY;
-      }
       this.socket.emit('playerMovement', position);
       if(!this.walkSound.isPlaying){
         this.walkSound.play({delay:.1});
       }
     }
 
-    if(this.orb1 != null){
 
-
-      scene.tweens.add({
-        targets     : [ this.orb1 ],
-        scaleX: 1.2,
-        scaleY: 1.2,
-        ease        : 'Linear',
-        duration    : 300,
-
-      });
-      this.orb1.x = this.axis.x > 0 ?  this.x + 10 :
-                    this.axis.x < 0 ?  this.x - 10 :
-                    this.orb1.x;
-      this.orb1.y = this.y;
     }
 
-    if(this.orb2 != null){
 
-      scene.tweens.add({
-        targets     : [ this.orb2 ],
-        scaleX      : 0.70,
-        scaleY      : 0.70,
-        ease        : 'Linear',
-      })
-
-
-      scene.tweens.add({
-        targets     : [ this.orb2 ],
-        y           : this.y - 10,
-        ease        : 'Linear',
-        duration    : 300,
-      });
-
-      scene.tweens.add({
-        targets     : [ this.orb2 ],
-        x           : this.axis.x > 0 ? this.x - 10 :
-                      this.axis.x < 0 ?  this.x + 10 :
-                      this.orb2.x,
-        ease        : 'Linear',
-        duration    : 500,
-      })
-
-      /*
-    this.orb2.x = this.axis.x > 0 ? this.x - 20 :
-                  this.axis.x < 0 ?  this.x + 20 :
-                  this.orb2.x,
-    this.orb2.y = this.y - 20;
-    */
-    }
-
-  }
 
   sockets(){
 

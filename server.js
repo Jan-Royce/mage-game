@@ -39,11 +39,14 @@ io.on('connection',function(socket){
     players[socket.id].x = newPosition.x;
     players[socket.id].y = newPosition.y;
     players[socket.id].flipX = newPosition.flipX;
-    if(Object.keys(newPosition.orb2).length>0){
+    if(newPosition.orb2){
+      /*
       players[socket.id].secondary.x = newPosition.orb2.x;
       players[socket.id].secondary.y = newPosition.orb2.y;
-      players[socket.id].secondary.scaleX = newPosition.orb2.scaleX;
-      players[socket.id].secondary.scaleY = newPosition.orb2.scaleY;
+      players[socket.id].secondary.scaleX = newPosition.orb2.scale.x;
+      players[socket.id].secondary.scaleY = newPosition.orb2.scale.y;
+      */
+      players[socket.id].secondary = newPosition.orb2;
     }
     //broadcast movement to other clients
     socket.broadcast.emit('playerMoved',players[socket.id]);
@@ -52,11 +55,9 @@ io.on('connection',function(socket){
     players[socket.id].x = idlePosition.x;
     players[socket.id].y = idlePosition.y;
     players[socket.id].flipX = idlePosition.flipX;
-    if(Object.keys(idlePosition.orb2).length>0){
-      players[socket.id].secondary.x = idlePosition.orb2.x;
-      players[socket.id].secondary.y = idlePosition.orb2.y;
-      players[socket.id].secondary.scaleX = idlePosition.orb2.scaleX;
-      players[socket.id].secondary.scaleY = idlePosition.orb2.scaleY;
+    if(idlePosition.orb2){
+      players[socket.id].secondary = idlePosition.orb2;
+
     }
     //broadcast movement to other clients
     socket.broadcast.emit('playerStopped',players[socket.id]);
@@ -122,6 +123,9 @@ io.on('connection',function(socket){
 
   socket.on('orbDestroy',function(id){
     socket.broadcast.emit('orbDestroyed', id);
+  });
+  socket.on('orbSwap',function(){
+    socket.broadcast.emit('orbSwapped');
   });
   socket.on('orbLevelChange',function(orbInfo){
     socket.broadcast.emit('orbLevelChanged', orbInfo);

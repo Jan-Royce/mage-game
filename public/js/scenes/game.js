@@ -187,8 +187,14 @@ export class GameScene extends Phaser.Scene{
       primary: null,
     });
     this.allOrbs = this.physics.add.group();
-    this.orbProjectiles = this.physics.add.group();
+    this.ownProjectiles = this.physics.add.group();
+    this.enemyProjectiles = this.physics.add.group();
     this.sockets()
+
+    this.physics.add.overlap(this.ownProjectiles, this.enemyMages, (orb, enemies) =>{
+       enemies.tint = Math.random() * 0xffffff;
+       orb.destroy();
+    }, null, this);
     //this.mage = this.physics.add.sprite(50, 50, CST.SPRITE.PLAYER);
 
 
@@ -207,7 +213,8 @@ export class GameScene extends Phaser.Scene{
   update(){
     if(this.mage){
       this.mage.update(this);
-      this.orbProjectiles.getChildren().forEach((orb) =>{
+
+      this.enemyProjectiles.getChildren().forEach((orb) =>{
         orb.update(this);
       });
     }
@@ -326,28 +333,34 @@ export class GameScene extends Phaser.Scene{
       this.socket.on('projectileCreated',function(orbId){
         self.enemyMages.getChildren().forEach(function(otherPlayer){
           if(otherPlayer.primary && otherPlayer.primary.id==orbId){
-            self.orbProjectiles.add(otherPlayer.primary);
+            self.enemyProjectiles.add(otherPlayer.primary);
             otherPlayer.primary = null;
           }
         });
       });
       this.socket.on('projectileMoved',function(projectileInfo){
-        // console.log(projectileInfo)
-        self.orbProjectiles.getChildren().forEach(function(orbProjectile){
+        self.enemyProjectiles.getChildren().forEach(function(orbProjectile){
           if(orbProjectile.id == projectileInfo.id){
-            orbProjectile.x = projectileInfo.x;
-            orbProjectile.y = projectileInfo.y;
+           orbProjectile.setVelocity(projectileInfo.orbVelocity.x, projectileInfo.orbVelocity.y);
+           console.log(projectileInfo.orbVelocity);
           }
         });
       });
       this.socket.on('projectileDestroyed',function(orbId){
-        self.orbProjectiles.getChildren().forEach(function(orbProjectile){
+        self.enemyProjectiles.getChildren().forEach(function(orbProjectile){
           if(orbProjectile.id == orbId){
             orbProjectile.destroy();
           }
         });
       });
-
+      this.socket.on('orbSwapped', function(){
+      self.enemyMages.getChildren().forEach(function(otherPlayer){
+        let temp = otherPlayer.primary;
+        otherPlayer.primary = otherPlayer.secondary;
+        otherPlayer.primary.setScale(1.2);
+        otherPlayer.secondary = temp;
+      })
+    })
 
 
       this.socket.on('playerMoved', (playerInfo) => {
@@ -383,8 +396,7 @@ function addOtherPlayers(self, playerInfo){
   const otherPlayer = self.physics.add.sprite(self, playerInfo.x, playerInfo.y, CST.SPRITE.PLAYER);//.setScale(2);
   otherPlayer.playerId = playerInfo.playerId;
   otherPlayer.setScale(2);
-  otherPlayer.setSize(8,14).setOffset(12,10);
-
+  otherPlayer.setSize(8,21).setOffset(12,5);
   self.enemyMages.add(otherPlayer);
 }
 
@@ -396,16 +408,16 @@ function createOrb(self, newOrb){
 function updatePlayerOrb(self,playerInfo){
   self.enemyMages.getChildren().forEach((enemy) =>{
     if(enemy.primary){
-      enemy.primary.x = enemy.flipX ? enemy.x - 10 :
-                        !enemy.flipX ? enemy.x + 10 :
+      enemy.primary.x = !enemy.flipX ? enemy.x - 10 :
+                        enemy.flipX ? enemy.x + 10 :
                         enemy.primary.x;
       enemy.primary.y = enemy.y;
     }
     if(enemy.secondary){
       enemy.secondary.x = playerInfo.secondary.x;
       enemy.secondary.y = playerInfo.secondary.y;
-      enemy.secondary.scaleX = playerInfo.secondary.scaleX;
-      enemy.secondary.scaleY = playerInfo.secondary.scaleY;
+      enemy.secondary.scaleX = playerInfo.secondary.scale.x;
+      enemy.secondary.scaleY = playerInfo.secondary.scale.y;
     }
   });
 }

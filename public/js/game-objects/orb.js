@@ -6,6 +6,7 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
     scene.sys.displayList.add(this);
     scene.physics.world.enableBody(this, 0);
     this.socket = scene.socket;
+
     this.init(x,y,id,level);
     this.preload(scene);
     this.create(scene);
@@ -29,76 +30,21 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
 
   create(scene, frame){
     scene.popSound = scene.sound.add(CST.AUDIO.POP);
-
-    /*
-    //orb - orb collision
-    scene.physics.add.overlap(scene.allOrbs,this,function(other, orb){
-      console.log("orb:",orb.type)
-      console.log("other:",other.type)
-
-      if(orb.type == other.type){ //temp handler, should prolly make 'em combine
-        // console.log(orb.id," | ",orb.type," | ",orb.level)
-        other.level = Math.min(other.level+orb.level,3);
-        if(orb.fired){
-          orb.destroy();
-        }
-        console.log("same type");
-      }
-      else if(orb.type == "rock" && other.type == "paper"){
-        // orb.level = orb.level - other.level;
-        // if(orb.level <= 0){
-          orb.destroy();
-        // }
-      }
-      else if(orb.type == "rock" && other.type == "scissors"){
-        // orb.level = orb.level - other.level;
-        // if(orb.level <= 0){
-          orb.destroy();
-        // }
-      }
-      else if(orb.type == "paper" && other.type == "rock"){
-        // orb.level = orb.level - other.level;
-        // if(orb.level <= 0){
-          orb.destroy();
-        // }
-      }
-      else if(orb.type == "paper" && other.type == "scissors"){
-        // orb.level = orb.level - other.level;
-        // if(orb.level <= 0){
-          orb.destroy();
-        // }
-      }
-      else if(orb.type == "scissors" && other.type == "rock"){
-        // orb.level = orb.level - other.level;
-        // if(orb.level <= 0){
-          orb.destroy();
-        // }
-      }
-      else if(orb.type == "scissors" && other.type == "paper"){
-        // orb.level = orb.level - other.level;
-        // if(orb.level <= 0){
-          orb.destroy();
-        // }
-      }
-      scene.popSound.play({volume:.05});
-    }, null, scene);
-    */
   }
 
   update(scene){
     if(this.fired){
-      if(this.x <= scene.game.config.width && this.x >= 0 &&
-      this.y <= scene.game.config.height && this.y >= 0){
-        let projectile = {
-          id: this.id,
-          x: this.x,
-          y: this.y
-        };
-        this.socket.emit('projectileMove',projectile);
-      }//within world bounds
-      else{//exceeds world bounds
+      if(this.x >= scene.game.config.width && this.x <= 0 &&
+      this.y >= scene.game.config.height && this.y <= 0){
         this.destroy();
         this.socket.emit('projectileDestroy',this.id);
+      }//within world bounds
+      else{//exceeds world bounds
+        var projectile = {
+          id: this.id,
+          orbVelocity: this.orbVelocity,
+        };
+        this.socket.emit('projectileMove',projectile);
       }
     }
   }
@@ -136,22 +82,23 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
   }
 
   throwOrb(scene,pointer){
+
     this.fired = true;
-    scene.orbProjectiles.add(this);
+    scene.ownProjectiles.add(this);
     this.socket.emit('projectileCreate',this.id);
+
     //orb - orb collision
     scene.physics.add.overlap(this,scene.allOrbs,function(orb, other){
       // console.log("orb:",orb.type)
       // console.log("other:",other.type)
 
       if(orb.type == other.type){ //temp handler, should prolly make 'em combine
-        other.changeOrbLevel(Math.min(other.level+orb.level,3));
+        orb.changeOrbLevel(Math.min(other.level+orb.level,3));
         // other.level = Math.min(other.level+orb.level,3);
-
         // console.log(orb.id," | ",orb.type," | ",orb.level,"[same type]")
         // console.log(other.id," | ",other.type," | ",other.level,"[same type]")
         if(orb.fired){
-          orb.destroyOrb();
+          other.destroyOrb();
         }
       }
       else if(orb.type == "rock" && other.type == "paper"){
@@ -219,7 +166,7 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
     this.y = scene.mage.y;
     */
 
-    let orbVelocity = new Phaser.Math.Vector2();
+    this.orbVelocity = new Phaser.Math.Vector2();
     let mage_pt = new Phaser.Geom.Point(scene.mage.x,scene.mage.y);
     let newOrb_pt = new Phaser.Geom.Point(pointer.x, pointer.y);
     let angle = Phaser.Math.Angle.BetweenPoints(mage_pt, newOrb_pt);
@@ -240,7 +187,9 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
     // console.log("rad round: ",angle_rounded);
     // console.log("rad angle: ",angle);
     // console.log("deg angle: ",angle*180/Math.PI);
-    scene.physics.velocityFromRotation(angle, 400, orbVelocity);//this.level * something for speed depending on level
-    this.setVelocity(orbVelocity.x, orbVelocity.y);
+
+    scene.physics.velocityFromRotation(angle, 400, this.orbVelocity);//this.level * something for speed depending on level
+    this.setVelocity(this.orbVelocity.x , this.orbVelocity.y);
+
   }
 }
