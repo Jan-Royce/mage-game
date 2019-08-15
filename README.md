@@ -5,6 +5,7 @@ mage game with balls
 
 ```
 2019-08-15 5:40PM PHT
+- added orb switching
 - added side divider
 - spawns players on alternate side (not yet perfect, I guess)
 - orb spawn limit per-side
