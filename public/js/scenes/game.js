@@ -183,6 +183,7 @@ export class GameScene extends Phaser.Scene{
   create(){
     var self = this;
 
+    this.walls = this.physics.add.group();
     this.enemyMages = this.physics.add.group({
       primary: null,
     });
@@ -195,18 +196,116 @@ export class GameScene extends Phaser.Scene{
        enemies.tint = Math.random() * 0xffffff;
        orb.destroy();
     }, null, this);
-    //this.mage = this.physics.add.sprite(50, 50, CST.SPRITE.PLAYER);
 
+    //<editor-fold> animations
+    // this.anims.create({
+    //     key: "idle",
+    //     frames: this.anims.generateFrameNumbers("player", {
+    //         start: 0,
+    //         end: 3
+    //     }),
+    //     frameRate: 8,
+    //     repeat: -1
+    // });
+    //
+    // this.anims.create({
+    //     key: "walk",
+    //     frames: this.anims.generateFrameNumbers("player", {
+    //         start: 4,
+    //         end: 9
+    //     }),
+    //     frameRate: 10,
+    //     repeat: -1
+    // });
 
+    this.anims.create({
+        key: "rock1",
+        frames: this.anims.generateFrameNumbers("orbs", {
+            start: 0,
+            end: 2
+        }),
+        frameRate: 5,
+        repeat: -1
+    });
+    this.anims.create({
+        key: "rock2",
+        frames: this.anims.generateFrameNumbers("orbs", {
+            start: 3,
+            end: 5
+        }),
+        frameRate: 5,
+        repeat: -1
+    });
+    this.anims.create({
+        key: "rock3",
+        frames: this.anims.generateFrameNumbers("orbs", {
+            start: 6,
+            end: 8
+        }),
+        frameRate: 5,
+        repeat: -1
+    });
 
-      //   let newOrb = {
-      //     x: pointer.x,
-      //     y: pointer.y,
-      //     frameIndex: Math.floor(Math.random() * 3),
-      //     orbId: Math.floor(Math.random() * 1000)
-      //   };
-      //   createOrb_click(self, newOrb);
+    this.anims.create({
+        key: "paper1",
+        frames: this.anims.generateFrameNumbers("orbs", {
+            start: 9,
+            end: 11
+        }),
+        frameRate: 5,
+        repeat: -1
+    });
+    this.anims.create({
+        key: "paper2",
+        frames: this.anims.generateFrameNumbers("orbs", {
+            start: 12,
+            end: 14
+        }),
+        frameRate: 5,
+        repeat: -1
+    });
+    this.anims.create({
+        key: "paper3",
+        frames: this.anims.generateFrameNumbers("orbs", {
+            start: 15,
+            end: 17
+        }),
+        frameRate: 5,
+        repeat: -1
+    });
 
+    this.anims.create({
+        key: "scissors1",
+        frames: this.anims.generateFrameNumbers("orbs", {
+            start: 18,
+            end: 20
+        }),
+        frameRate: 5,
+        repeat: -1
+    });
+    this.anims.create({
+        key: "scissors2",
+        frames: this.anims.generateFrameNumbers("orbs", {
+            start: 21,
+            end: 23
+        }),
+        frameRate: 5,
+        repeat: -1
+    });
+    this.anims.create({
+        key: "scissors3",
+        frames: this.anims.generateFrameNumbers("orbs", {
+            start: 24,
+            end: 26
+        }),
+        frameRate: 5,
+        repeat: -1
+    });
+    //</editor-fold> animations
+
+    let divider = this.walls.create(this.game.config.width/2, this.game.config.height/2).setImmovable(true);
+    divider.scaleY = 20;
+    divider.setVisible(false);
   }
 
 
@@ -261,7 +360,7 @@ export class GameScene extends Phaser.Scene{
           if (pickUp.orbId === orb.id) {
             self.enemyMages.getChildren().forEach(function (otherPlayer) {
              if (pickUp.playerId === otherPlayer.playerId) {
-                otherPlayer.primary = new Orb(self, otherPlayer.x,otherPlayer.y,'orbs', orb.frame.name,orb.id);
+                otherPlayer.primary = new Orb(self, otherPlayer.x,otherPlayer.y,'orbs', Math.round(orb.frame.name/9),orb.id);
                 otherPlayer.primary.setScale(1.2);
              }
             });
@@ -275,6 +374,7 @@ export class GameScene extends Phaser.Scene{
             self.enemyMages.getChildren().forEach(function (otherPlayer) {
              if (pickUp.playerId === otherPlayer.playerId) {
                 otherPlayer.primary.level = pickUp.level;
+                otherPlayer.primary.anims.play(otherPlayer.primary.type+otherPlayer.primary.level, true);
              }
             });
             orb.destroy();
@@ -286,7 +386,7 @@ export class GameScene extends Phaser.Scene{
           if (pickUp.orbId === orb.id) {
             self.enemyMages.getChildren().forEach(function (otherPlayer) {
              if (pickUp.playerId === otherPlayer.playerId) {
-                otherPlayer.secondary = new Orb(self, otherPlayer.x,otherPlayer.y,'orbs', orb.frame.name,orb.id);
+                otherPlayer.secondary = new Orb(self, otherPlayer.x,otherPlayer.y,'orbs', Math.round(orb.frame.name/9),orb.id);
              }
             });
             orb.destroy();
@@ -299,6 +399,7 @@ export class GameScene extends Phaser.Scene{
             self.enemyMages.getChildren().forEach(function (otherPlayer) {
              if (pickUp.playerId === otherPlayer.playerId) {
                 otherPlayer.secondary.level = pickUp.level;
+                otherPlayer.secondary.anims.play(otherPlayer.secondary.type+otherPlayer.secondary.level, true);
              }
             });
             orb.destroy();
@@ -316,6 +417,13 @@ export class GameScene extends Phaser.Scene{
         self.allOrbs.getChildren().forEach(function(orb) {
           if(orb.id == orbInfo.id){
             orb.level = orbInfo.level;
+            orb.anims.play(orb.type+orb.level, true);
+          }
+        });
+        self.enemyProjectiles.getChildren().forEach(function(orb) {
+          if(orb.id == orbInfo.id){
+            orb.level = orbInfo.level;
+            orb.anims.play(orb.type+orb.level, true);
           }
         });
       });
@@ -342,7 +450,7 @@ export class GameScene extends Phaser.Scene{
         self.enemyProjectiles.getChildren().forEach(function(orbProjectile){
           if(orbProjectile.id == projectileInfo.id){
            orbProjectile.setVelocity(projectileInfo.orbVelocity.x, projectileInfo.orbVelocity.y);
-           console.log(projectileInfo.orbVelocity);
+           // console.log(projectileInfo.orbVelocity);
           }
         });
       });
@@ -357,11 +465,10 @@ export class GameScene extends Phaser.Scene{
       self.enemyMages.getChildren().forEach(function(otherPlayer){
         let temp = otherPlayer.primary;
         otherPlayer.primary = otherPlayer.secondary;
-        otherPlayer.primary.setScale(1.2);
+        if(otherPlayer.primary){otherPlayer.primary.setScale(1.2);}
         otherPlayer.secondary = temp;
       })
     })
-
 
       this.socket.on('playerMoved', (playerInfo) => {
         self.enemyMages.getChildren().forEach(function(otherPlayer){

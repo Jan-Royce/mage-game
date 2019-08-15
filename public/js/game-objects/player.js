@@ -87,7 +87,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.overlap(scene.allOrbs,this,function(mage, orb){
       if(!mage.orb1){
         scene.pickupSound.play({volume:.5});
-        mage.orb1 = new Orb(scene, mage.x, mage.y, orb.texture.key, orb.frame.name, orb.id, orb.level);
+        console.log(Math.round(orb.frame.name/9))
+        mage.orb1 = new Orb(scene, mage.x, mage.y, orb.texture.key, Math.round(orb.frame.name/9), orb.id, orb.level);
         orb.destroy();
         //orb.body.enable = false;
         //orb.setActive(false).setVisible(false);
@@ -101,7 +102,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       }
       else if(mage.orb1.level < 3 && mage.orb1.type == orb.type){
         scene.pickupSound.play({volume:.5});
-        mage.orb1.level = Math.min(mage.orb1.level+orb.level,3);
+        // mage.orb1.level = Math.min(mage.orb1.level+orb.level,3);
+        mage.orb1.changeOrbLevel(Math.min(mage.orb1.level+orb.level,3));
         orb.destroy();
         let orbProp = {
           id: mage.orb1.id,
@@ -114,7 +116,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       }
       else if(!mage.orb2){
         scene.pickupSound.play({volume:.5});
-        mage.orb2 = new Orb(scene, mage.x, mage.y, orb.texture.key, orb.frame.name, orb.id, orb.level);
+        mage.orb2 = new Orb(scene, mage.x, mage.y, orb.texture.key, Math.round(orb.frame.name/9), orb.id, orb.level);
 
         orb.destroy();
         //orb.body.enable = false;
@@ -127,7 +129,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       }
       else if(mage.orb2.level < 3 && mage.orb2.type == orb.type){
         scene.pickupSound.play({volume:.5});
-        mage.orb2.level = Math.min(mage.orb2.level+orb.level,3);
+        // mage.orb2.level = Math.min(mage.orb2.level+orb.level,3);
+        mage.orb2.changeOrbLevel(Math.min(mage.orb2.level+orb.level,3));
         orb.destroy();
         let orbProp = {
           id: mage.orb2.id,
@@ -152,10 +155,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.socket.emit('projectileDestroy',projectile.id);
       projectile.destroy();
     }, null, scene);//player-projectile overlap
+
+    scene.physics.add.collider(this, scene.walls);
   }
 
   update(scene){
-
     let up = this.keys.UP.isDown;
     let down = this.keys.DOWN.isDown;
     let left = this.keys.LEFT.isDown;
@@ -242,9 +246,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.walkSound.play({delay:.1});
       }
     }
-
-
-    }
+  }
 
 
 

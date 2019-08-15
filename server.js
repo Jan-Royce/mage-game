@@ -14,8 +14,13 @@ app.get('/',function(req,res){
 
 io.on('connection',function(socket){
   console.log('a player has connected');
+  let side = 0;
+  if(Object.keys(players).length % 2 != 0){
+    side = 400;
+  }
+
   players[socket.id] = {
-    x: Math.floor(Math.random() * 700) + 50,
+    x: Math.floor(Math.random() * 400) + side,
     y: Math.floor(Math.random() * 500) + 50,
     flipX: false,
     primary: {},
@@ -142,8 +147,8 @@ server.listen(8081,function(){
 });
 
 function generateOrb(){
-  // if(Object.keys(players).length > 1 &&
-  if(Object.keys(players).length > 0 &&
+  if(Object.keys(players).length > 1 &&
+  // if(Object.keys(players).length > 0 &&
   Object.keys(orbs).length < 10){
     console.log("new orb!");
     let orbId = uniqid("orb-");

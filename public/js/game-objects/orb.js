@@ -7,18 +7,19 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
     scene.physics.world.enableBody(this, 0);
     this.socket = scene.socket;
 
-    this.init(x,y,id,level);
+    this.init(x,y,id,level,frame);
     this.preload(scene);
-    this.create(scene);
-    this.getOrbType(frame);
+    this.create(scene,texture);
+    // this.getOrbType(frame);
   }
 
-  init(x,y,id,level){
+  init(x,y,id,level,frame){
     this.id = id;
     this.fired = false;
     this.x = x;
     this.y = y;
-    this.type = 'none';
+    // this.type = 'none';
+    this.getOrbType(frame);
     this.level = level!=null?level:1;
     this.setCircle(8);
     this.depth = this.y + this.height/4;
@@ -28,8 +29,9 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
 
   }
 
-  create(scene, frame){
+  create(scene, texture){
     scene.popSound = scene.sound.add(CST.AUDIO.POP);
+    this.anims.play(this.type+this.level, true);
   }
 
   update(scene){
@@ -78,6 +80,7 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
 
   changeOrbLevel(level){
     this.level = level;
+    this.anims.play(this.type+this.level, true);
     this.socket.emit('orbLevelChange',{id:this.id,level:level});
   }
 
@@ -94,13 +97,16 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
 
       if(orb.type == other.type){ //temp handler, should prolly make 'em combine
         orb.changeOrbLevel(Math.min(other.level+orb.level,3));
+        orb.anims.play(orb.type+orb.level, true);
         // other.level = Math.min(other.level+orb.level,3);
         // console.log(orb.id," | ",orb.type," | ",orb.level,"[same type]")
         // console.log(other.id," | ",other.type," | ",other.level,"[same type]")
         if(orb.fired){
           other.destroyOrb();
         }
+        scene.popSound.play({volume:.05});
       }
+      /*
       else if(orb.type == "rock" && other.type == "paper"){
         other.changeOrbLevel(other.level - orb.level);
         // other.level = other.level - orb.level;
@@ -149,7 +155,7 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
         }
         other.destroyOrb();
       }
-      scene.popSound.play({volume:.05});
+      */
     }, null, scene);
 
     // this.setActive(true);
