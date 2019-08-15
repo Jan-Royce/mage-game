@@ -4,6 +4,13 @@ mage game with balls
 ### Changelog: 
 
 ```
+2019-08-15 5:40PM PHT
+- added side divider
+- spawns players on alternate side (not yet perfect, I guess)
+- orb spawn limit per-side
+```
+
+```
 2019-08-14 7:09PM PHT
 - synced secondary pickup and position
 - synced primary and secondary orb stacking
