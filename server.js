@@ -148,7 +148,7 @@ getSideCount();
 
 function generateOrb(offset,prefix){
   let orbId = uniqid("orb"+prefix+"-");
-  console.log("id",orbId)
+  // console.log("id",orbId)
   orbs[orbId] = {
     x: Math.floor(Math.random() * 400) + offset,
     y: Math.floor(Math.random() * 500) + 50,
@@ -161,7 +161,7 @@ function generateOrb(offset,prefix){
 
 function getSideCount(){
   if(Object.keys(players).length > 1){
-    console.log("orbs count:",Object.keys(orbs).length);
+    // console.log("orbs count:",Object.keys(orbs).length);
     side.left = 0;
     side.right = 0;
     Object.keys(orbs).forEach(function(orb){
@@ -172,7 +172,7 @@ function getSideCount(){
         side.right++;
       }
     });
-    console.log("left",side.left,"right",side.right);
+    // console.log("left",side.left,"right",side.right);
 
     if(side.left < 5){
       generateOrb(0,"_l");
