@@ -32,6 +32,12 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
   create(scene, texture){
     scene.popSound = scene.sound.add(CST.AUDIO.POP);
     this.anims.play(this.type+this.level, true);
+
+    this.setInteractive();
+
+    this.on('pointerup',function(){
+      console.log(this.x,this.y);
+    }, this);
   }
 
   update(scene){

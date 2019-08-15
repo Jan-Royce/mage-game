@@ -4,7 +4,10 @@ var server = require('http').Server(app);
 var io = require('socket.io').listen(server);
 var players = {};
 var orbs = {};
-var projectiles = {};
+var side = {
+  left: 0,
+  right: 0
+};
 
 app.use(express.static(__dirname + '/public'));
 
@@ -135,33 +138,51 @@ io.on('connection',function(socket){
   socket.on('orbLevelChange',function(orbInfo){
     socket.broadcast.emit('orbLevelChanged', orbInfo);
   });
-
-
-
-  //generate orbs
-  generateOrb();
 });//'connection' event
 
 server.listen(8081,function(){
   console.log(`Listening on ${server.address().port}`);
 });
+//generate orbs
+getSideCount();
 
-function generateOrb(){
-  if(Object.keys(players).length > 1 &&
-  // if(Object.keys(players).length > 0 &&
-  Object.keys(orbs).length < 10){
-    console.log("new orb!");
-    let orbId = uniqid("orb-");
-    orbs[orbId] = {
-      x: Math.floor(Math.random() * 700) + 50,
-      y: Math.floor(Math.random() * 500) + 50,
-      // type: 'fire',
-      orbId: orbId,
-      frameIndex: Math.floor(Math.random() * 3)
-    };
-    io.emit('newOrb',orbs[orbId]);
+function generateOrb(offset,prefix){
+  let orbId = uniqid("orb"+prefix+"-");
+  console.log("id",orbId)
+  orbs[orbId] = {
+    x: Math.floor(Math.random() * 400) + offset,
+    y: Math.floor(Math.random() * 500) + 50,
+    // type: 'fire',
+    orbId: orbId,
+    frameIndex: Math.floor(Math.random() * 3)
+  };
+  io.emit('newOrb',orbs[orbId]);
+}
+
+function getSideCount(){
+  if(Object.keys(players).length > 1){
+    console.log("orbs count:",Object.keys(orbs).length);
+    side.left = 0;
+    side.right = 0;
+    Object.keys(orbs).forEach(function(orb){
+      if(orbs[orb].x<=400){
+        side.left++;
+      }
+      else if(orbs[orb].x>400){
+        side.right++;
+      }
+    });
+    console.log("left",side.left,"right",side.right);
+
+    if(side.left < 5){
+      generateOrb(0,"_l");
+    }
+    if(side.right < 5){
+      generateOrb(400,"_r");
+    }
+
   }
-  setTimeout(generateOrb,5000);
+  setTimeout(getSideCount,5000);
 }
 
 function uniqid(a = "",b = false){
