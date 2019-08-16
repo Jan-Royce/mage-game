@@ -4,6 +4,12 @@ mage game with balls
 ### Changelog: 
 
 ```
+2019-08-16 5:01PM PHT
+- added orb throw indicator
+- fixed orb spawning inside divider
+```
+
+```
 2019-08-15 5:40PM PHT
 - added orb switching
 - added side divider
