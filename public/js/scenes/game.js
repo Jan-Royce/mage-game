@@ -193,11 +193,12 @@ export class GameScene extends Phaser.Scene{
     this.enemyProjectiles = this.physics.add.group();
     this.sockets()
 
+/*
     this.physics.add.overlap(this.ownProjectiles, this.enemyMages, (orb, enemy) =>{
        enemy.tint = Math.random() * 0xffffff;
        orb.destroyOrb();
-       //do a socket event for the orb effect and not just destroyOrb
     }, null, this);
+*/
 
     //<editor-fold> animations
     // this.anims.create({
@@ -461,6 +462,11 @@ export class GameScene extends Phaser.Scene{
             orbProjectile.destroy();
           }
         });
+        self.ownProjectiles.getChildren().forEach(function(orbProjectile){
+          if(orbProjectile.id == orbId){
+            orbProjectile.destroy();
+          }
+        });
       });
       this.socket.on('orbSwapped', function(){
       self.enemyMages.getChildren().forEach(function(otherPlayer){
@@ -468,8 +474,14 @@ export class GameScene extends Phaser.Scene{
         otherPlayer.primary = otherPlayer.secondary;
         if(otherPlayer.primary){otherPlayer.primary.setScale(1.2);}
         otherPlayer.secondary = temp;
-      })
-    })
+      });
+    });
+
+
+    // this.enemyMages.getChildren().forEach(function(otherPlayer){
+    //   otherPlayer.hpGui.x = otherPlayer.x;
+    //   otherPlayer.hpGui.y = otherPlayer.y-otherPlayer.height;
+    // });
 
       this.socket.on('playerMoved', (playerInfo) => {
         self.enemyMages.getChildren().forEach(function(otherPlayer){
@@ -485,6 +497,8 @@ export class GameScene extends Phaser.Scene{
               otherPlayer.arrow.rotation = playerInfo.arrow_r;
               otherPlayer.arrow.scaleX = playerInfo.arrow_scaleX;
             }
+            otherPlayer.hpGui.x = playerInfo.hp_x;
+            otherPlayer.hpGui.y = playerInfo.hp_y;
           }
         });
       });
@@ -505,6 +519,15 @@ export class GameScene extends Phaser.Scene{
           }
         });
       });
+      this.socket.on('hpUpdated', (playerInfo) => {
+        self.enemyMages.getChildren().forEach(function(otherPlayer){
+          if(playerInfo.playerId === otherPlayer.playerId){
+            otherPlayer.currentHp = playerInfo.hp.current;
+            otherPlayer.maxHp = playerInfo.hp.max;
+            otherPlayer.hpGui.setText(`${otherPlayer.currentHp}/${otherPlayer.maxHp}`);
+          }
+        });
+      });
  }
 }
 
@@ -520,6 +543,9 @@ function addOtherPlayers(self, playerInfo){
   otherPlayer.setSize(8,21).setOffset(12,5);
   self.enemyMages.add(otherPlayer);
   otherPlayer.arrow = self.add.sprite(playerInfo.x, playerInfo.y, 'arrow').setVisible(false).setOrigin(-0.5,0.5);
+  otherPlayer.currentHp = 20;
+  otherPlayer.maxHp = 20;
+  otherPlayer.hpGui = self.add.text(playerInfo.x, playerInfo.y-otherPlayer.height,`${otherPlayer.currentHp}/${otherPlayer.maxHp}`).setOrigin(0.5,0.5);
 }
 
 function createOrb(self, newOrb){

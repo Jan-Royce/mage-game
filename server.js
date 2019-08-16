@@ -56,6 +56,8 @@ io.on('connection',function(socket){
     players[socket.id].arrow_y = newPosition.arrow_y;
     players[socket.id].arrow_r = newPosition.arrow_r;
     players[socket.id].arrow_scaleX = newPosition.arrow_scaleX;
+    players[socket.id].hp_x = newPosition.hp_x;
+    players[socket.id].hp_y = newPosition.hp_y;
     //broadcast movement to other clients
     socket.broadcast.emit('playerMoved',players[socket.id]);
   });
@@ -74,6 +76,10 @@ io.on('connection',function(socket){
     players[socket.id].arrow_scaleX = idlePosition.arrow_scaleX;
     //broadcast movement to other clients
     socket.broadcast.emit('playerStopped',players[socket.id]);
+  });
+
+  socket.on('hpUpdate',function(hp){
+    socket.broadcast.emit('hpUpdated',{playerId:socket.id,hp:hp});
   });
 
   socket.on('orbGetPrimary',function(orbProp){

@@ -15,7 +15,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   init(scene, x, y){
-    this.hp = 20;
     this.x = x;
     this.y = y;
     this.axis = new Phaser.Math.Vector2();
@@ -28,6 +27,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.charging = false;
     // this.tint = Math.random() * 0xffffff;
     this.arrow = scene.add.sprite(this.x, this.y, 'arrow').setVisible(false).setOrigin(-0.5,0.5);
+    this.currentHp = 20;
+    this.maxHp = 20;
+    this.hpGui = scene.add.text(this.x, this.y-this.height/4,`${this.currentHp}/${this.maxHp}`).setOrigin(0.5,0.5);
   }
 
   preload(scene){
@@ -163,15 +165,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }, null, scene);//player-orb overlap
 
     scene.physics.add.overlap(this,scene.enemyProjectiles,function(mage, projectile){
-      // console.log(projectile)
-      //orb effect on player that's hit
-      //temp lol
-      // mage.scaleX -= mage.scaleX/96;
-      // mage.scaleY -= mage.scaleY/96;
-      mage.tint = Math.random() * 0xffffff;
       this.socket.emit('projectileDestroy',projectile.id);
       projectile.destroy();
+      mage.currentHp--;
+      mage.updateHpValue();
     }, null, scene);//player-projectile overlap
+    //do a socket event for the orb effects
 
     scene.physics.add.collider(this, scene.walls);
   }
@@ -192,7 +191,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if(this.charging){
       this.orb1.speed = Math.min(this.orb1.speed+1,this.orb1.maxSpeed);
       this.arrow.scaleX = Math.min(this.orb1.speed/200,this.orb1.maxSpeed/200);
-      console.log(this.orb1.speed)
+      // console.log(this.orb1.speed)
     }
 
       if(this.orb1){
@@ -238,8 +237,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         })
       }
 
-
-
     this.axis.x = right - left;
     this.axis.y = down - up;
 
@@ -270,7 +267,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       arrow_x: this.arrow.x,
       arrow_y: this.arrow.y,
       arrow_r: this.arrow.rotation,
-      arrow_scaleX: this.arrow.scaleX
+      arrow_scaleX: this.arrow.scaleX,
+      hp_x: this.hpGui.x,
+      hp_y: this.hpGui.y
     };
 
     if (this.axis.x == 0 && this.axis.y == 0) {
@@ -284,9 +283,19 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         this.walkSound.play({delay:.1});
       }
     }
+
+    this.hpGui.x = this.x;
+    this.hpGui.y = this.y-this.height;
+  }//update
+
+  updateHpValue(){
+    this.hpGui.setText(`${this.currentHp}/${this.maxHp}`);
+    let hp = {
+      current: this.currentHp,
+      max: this.maxHp
+    };
+    this.socket.emit('hpUpdate', hp);
   }
-
-
 
   sockets(){
 
