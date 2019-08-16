@@ -12,6 +12,7 @@ var side = {
 app.use(express.static(__dirname + '/public'));
 
 app.get('/',function(req,res){
+  console.log(req,res)
   res.sendFile(__dirname + '/index.html');
 });
 
@@ -120,9 +121,6 @@ io.on('connection',function(socket){
     socket.broadcast.emit('orbStackedSecondary', pickup);
   });
 
-  socket.on('primaryThrow',function(id){
-    socket.broadcast.emit('primaryThrown', socket.id);
-  });
   socket.on('projectileCreate',function(id){
     socket.broadcast.emit('projectileCreated', id);
   });

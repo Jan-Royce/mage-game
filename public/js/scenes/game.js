@@ -430,24 +430,19 @@ export class GameScene extends Phaser.Scene{
         });
       });
 
-      this.socket.on('primaryThrown',function(playerId){
+      this.socket.on('projectileCreated',function(orbId){
         self.enemyMages.getChildren().forEach(function(otherPlayer){
-          if(otherPlayer.playerId == playerId){
-            if(otherPlayer.primary){
+          if(otherPlayer.primary && otherPlayer.primary.id==orbId){
+            self.enemyProjectiles.add(otherPlayer.primary);
+            otherPlayer.primary = null;
+            if(otherPlayer.secondary)
+            {
               otherPlayer.primary = otherPlayer.secondary;
               otherPlayer.primary.scaleX = 1.2;
               otherPlayer.primary.scaleY = 1.2;
               otherPlayer.secondary = null;
             }
             otherPlayer.arrow.visible = false;
-          }
-        });
-      });
-      this.socket.on('projectileCreated',function(orbId){
-        self.enemyMages.getChildren().forEach(function(otherPlayer){
-          if(otherPlayer.primary && otherPlayer.primary.id==orbId){
-            self.enemyProjectiles.add(otherPlayer.primary);
-            otherPlayer.primary = null;
           }
         });
       });

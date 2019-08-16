@@ -82,7 +82,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.input.on('pointerup', function(pointer){
       if(self.orb1 && self.orb1.scaleX >= 1.19 && self.charging){
           self.orb1.throwOrb(scene,pointer);
-          self.orb1.update(scene);
+          // self.orb1.update(scene);
           self.orb1 = null;
           self.charging = false;
           self.arrow.visible = false;
@@ -90,9 +90,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
             self.orb1 = self.orb2;
             self.orb1.x = 0;
             self.orb2 = null;
-            // self.socket.emit('primaryThrow');
           }
-          self.socket.emit('primaryThrow');
         }
       });
       if(self.orb1){console.log("orb1: ",self.orb1.type," : ",self.orb1.level);}
@@ -184,7 +182,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     let left = this.keys.LEFT.isDown;
     let right = this.keys.RIGHT.isDown;
 
-    if(Phaser.Input.Keyboard.JustDown(this.keys.CHANGE)){
+    if(Phaser.Input.Keyboard.JustDown(this.keys.CHANGE)&&!this.charging){
       var temp = this.orb1;
       this.orb1 = this.orb2;
       this.orb2 = temp;
