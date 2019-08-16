@@ -15,6 +15,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   init(scene, x, y){
+    this.hp = 20;
     this.x = x;
     this.y = y;
     this.axis = new Phaser.Math.Vector2();
@@ -24,7 +25,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.orb1 = null;
     this.orb2 = null;
     this.setCollideWorldBounds(true);
+    this.charging = false;
     // this.tint = Math.random() * 0xffffff;
+    this.arrow = scene.add.sprite(this.x, this.y, 'arrow').setVisible(false).setOrigin(-0.5,0.5);
   }
 
   preload(scene){
@@ -33,6 +36,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   create(scene, texture){
     var self = this;
+
     //<editor-fold> animations
     scene.anims.create({
         key: "idle",
@@ -63,17 +67,32 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       CHANGE: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q)
     }
 
-    scene.input.on('pointerup', function(pointer){
+    scene.input.on('pointerdown', function(pointer){
       if(self.orb1 && self.orb1.scaleX >= 1.19){
+        self.charging = true;
+        self.arrow.visible = true;
+      }
+    });
+    scene.input.on('pointermove', function(pointer){
+      if(self.orb1 && self.orb1.scaleX >= 1.19 && self.charging){
+        let angle = Phaser.Math.Angle.Between(self.orb1.x,self.orb1.y,pointer.x,pointer.y);
+        self.arrow.rotation = angle;
+      }
+    });
+    scene.input.on('pointerup', function(pointer){
+      if(self.orb1 && self.orb1.scaleX >= 1.19 && self.charging){
           self.orb1.throwOrb(scene,pointer);
           self.orb1.update(scene);
           self.orb1 = null;
+          self.charging = false;
+          self.arrow.visible = false;
           if(self.orb2){
             self.orb1 = self.orb2;
             self.orb1.x = 0;
             self.orb2 = null;
-            self.socket.emit('primaryThrow');
+            // self.socket.emit('primaryThrow');
           }
+          self.socket.emit('primaryThrow');
         }
       });
       if(self.orb1){console.log("orb1: ",self.orb1.type," : ",self.orb1.level);}
@@ -172,6 +191,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.socket.emit('orbSwap');
     }
 
+    if(this.charging){
+      this.orb1.speed = Math.min(this.orb1.speed+1,this.orb1.maxSpeed);
+      this.arrow.scaleX = Math.min(this.orb1.speed/200,this.orb1.maxSpeed/200);
+      console.log(this.orb1.speed)
+    }
+
       if(this.orb1){
 
         scene.tweens.add({
@@ -228,11 +253,26 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     this.setVelocityX(this.speed * axis.x);
     this.setVelocityY(this.speed * axis.y);
+
+    if(this.flipX){
+      this.arrow.x = this.x + this.width/2;
+      this.arrow.y = this.y;
+    }
+    else{
+      this.arrow.x = this.x - this.width/2;
+      this.arrow.y = this.y;
+    }
+
     var position = {
       x: this.x,
       y: this.y,
       flipX: this.flipX,
-      orb2: this.orb2
+      orb2: this.orb2,
+      arrow: this.arrow.visible,
+      arrow_x: this.arrow.x,
+      arrow_y: this.arrow.y,
+      arrow_r: this.arrow.rotation,
+      arrow_scaleX: this.arrow.scaleX
     };
 
     if (this.axis.x == 0 && this.axis.y == 0) {

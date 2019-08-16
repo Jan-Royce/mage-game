@@ -178,6 +178,7 @@ export class GameScene extends Phaser.Scene{
         frameWidth: 17,
         frameHeight: 17
     });
+    this.load.image('arrow', '../sprites/arrow.png');
   }
 
   create(){
@@ -192,9 +193,10 @@ export class GameScene extends Phaser.Scene{
     this.enemyProjectiles = this.physics.add.group();
     this.sockets()
 
-    this.physics.add.overlap(this.ownProjectiles, this.enemyMages, (orb, enemies) =>{
-       enemies.tint = Math.random() * 0xffffff;
-       orb.destroy();
+    this.physics.add.overlap(this.ownProjectiles, this.enemyMages, (orb, enemy) =>{
+       enemy.tint = Math.random() * 0xffffff;
+       orb.destroyOrb();
+       //do a socket event for the orb effect and not just destroyOrb
     }, null, this);
 
     //<editor-fold> animations
@@ -313,7 +315,7 @@ export class GameScene extends Phaser.Scene{
     if(this.mage){
       this.mage.update(this);
 
-      this.enemyProjectiles.getChildren().forEach((orb) =>{
+      this.ownProjectiles.getChildren().forEach((orb) =>{
         orb.update(this);
       });
     }
@@ -431,10 +433,13 @@ export class GameScene extends Phaser.Scene{
       this.socket.on('primaryThrown',function(playerId){
         self.enemyMages.getChildren().forEach(function(otherPlayer){
           if(otherPlayer.playerId == playerId){
-            otherPlayer.primary = otherPlayer.secondary;
-            otherPlayer.primary.scaleX = 1.2;
-            otherPlayer.primary.scaleY = 1.2;
-            otherPlayer.secondary = null;
+            if(otherPlayer.primary){
+              otherPlayer.primary = otherPlayer.secondary;
+              otherPlayer.primary.scaleX = 1.2;
+              otherPlayer.primary.scaleY = 1.2;
+              otherPlayer.secondary = null;
+            }
+            otherPlayer.arrow.visible = false;
           }
         });
       });
@@ -449,8 +454,9 @@ export class GameScene extends Phaser.Scene{
       this.socket.on('projectileMoved',function(projectileInfo){
         self.enemyProjectiles.getChildren().forEach(function(orbProjectile){
           if(orbProjectile.id == projectileInfo.id){
-           orbProjectile.setVelocity(projectileInfo.orbVelocity.x, projectileInfo.orbVelocity.y);
-           // console.log(projectileInfo.orbVelocity);
+           // orbProjectile.setVelocity(projectileInfo.orbVelocity.x, projectileInfo.orbVelocity.y);
+           orbProjectile.x = projectileInfo.x;
+           orbProjectile.y = projectileInfo.y;
           }
         });
       });
@@ -477,10 +483,16 @@ export class GameScene extends Phaser.Scene{
             otherPlayer.flipX = playerInfo.flipX;
             otherPlayer.anims.play('walk', true);
             updatePlayerOrb(self,playerInfo);
+            if(playerInfo.arrow){
+              otherPlayer.arrow.visible = true;
+              otherPlayer.arrow.x = playerInfo.arrow_x;
+              otherPlayer.arrow.y = playerInfo.arrow_y;
+              otherPlayer.arrow.rotation = playerInfo.arrow_r;
+              otherPlayer.arrow.scaleX = playerInfo.arrow_scaleX;
+            }
           }
         });
       });
-
       this.socket.on('playerStopped', (playerInfo) => {
         self.enemyMages.getChildren().forEach(function(otherPlayer){
           if(playerInfo.playerId === otherPlayer.playerId){
@@ -488,6 +500,13 @@ export class GameScene extends Phaser.Scene{
             otherPlayer.flipX = playerInfo.flipX;
             otherPlayer.anims.play('idle', true);
             updatePlayerOrb(self,playerInfo);
+            if(playerInfo.arrow){
+              otherPlayer.arrow.visible = true;
+              otherPlayer.arrow.x = playerInfo.arrow_x;
+              otherPlayer.arrow.y = playerInfo.arrow_y;
+              otherPlayer.arrow.rotation = playerInfo.arrow_r;
+              otherPlayer.arrow.scaleX = playerInfo.arrow_scaleX;
+            }
           }
         });
       });
@@ -505,6 +524,7 @@ function addOtherPlayers(self, playerInfo){
   otherPlayer.setScale(2);
   otherPlayer.setSize(8,21).setOffset(12,5);
   self.enemyMages.add(otherPlayer);
+  otherPlayer.arrow = self.add.sprite(playerInfo.x, playerInfo.y, 'arrow').setVisible(false).setOrigin(-0.5,0.5);
 }
 
 function createOrb(self, newOrb){

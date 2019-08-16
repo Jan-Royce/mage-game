@@ -23,6 +23,8 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
     this.level = level!=null?level:1;
     this.setCircle(8);
     this.depth = this.y + this.height/4;
+    this.speed = 0;
+    this.getMaxOrbSpeed(level);
   }
 
   preload(){
@@ -42,16 +44,21 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
 
   update(scene){
     if(this.fired){
-      if(this.x >= scene.game.config.width && this.x <= 0 &&
-      this.y >= scene.game.config.height && this.y <= 0){
-        this.destroy();
+      if(this.x >= scene.game.config.width || this.x <= 0 ||
+      this.y >= scene.game.config.height || this.y <= 0){
         this.socket.emit('projectileDestroy',this.id);
-      }//within world bounds
-      else{//exceeds world bounds
+        this.destroy();
+      }// exceeds world bounds
+      else{// within world bounds
         var projectile = {
           id: this.id,
-          orbVelocity: this.orbVelocity,
+          x: this.x,
+          y: this.y
         };
+        // var projectile = {
+        //   id: this.id,
+        //   orbVelocity: this.orbVelocity,
+        // };
         this.socket.emit('projectileMove',projectile);
       }
     }
@@ -73,6 +80,25 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
     this.type = type;
   }
 
+  getMaxOrbSpeed(level){
+    let maxSpeed = 0;
+    switch(level){
+      case 1:
+        maxSpeed = 400;
+        break;
+      case 2:
+        maxSpeed = 500;
+        break;
+      case 3:
+        maxSpeed = 600;
+        break;
+    }
+    this.maxSpeed = maxSpeed;
+    if(this.speed <= 0){
+      this.speed = this.maxSpeed/2;
+    }
+  }
+
   destroyOrb(){
     if(this.fired){
       this.socket.emit('projectileDestroy',this.id);
@@ -86,6 +112,7 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
 
   changeOrbLevel(level){
     this.level = level;
+    this.getMaxOrbSpeed(level);
     this.anims.play(this.type+this.level, true);
     this.socket.emit('orbLevelChange',{id:this.id,level:level});
   }
@@ -164,6 +191,8 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
       */
     }, null, scene);
 
+    //projectile collisions here (?)
+
     // this.setActive(true);
     // this.setVisible(true);
     // this.body.enable = true;
@@ -179,28 +208,30 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
     */
 
     this.orbVelocity = new Phaser.Math.Vector2();
-    let mage_pt = new Phaser.Geom.Point(scene.mage.x,scene.mage.y);
-    let newOrb_pt = new Phaser.Geom.Point(pointer.x, pointer.y);
-    let angle = Phaser.Math.Angle.BetweenPoints(mage_pt, newOrb_pt);
+    // let mage_pt = new Phaser.Geom.Point(scene.mage.x,scene.mage.y);
+    // let newOrb_pt = new Phaser.Geom.Point(pointer.x, pointer.y);
+    // let angle = Phaser.Math.Angle.BetweenPoints(mage_pt, newOrb_pt);
+    let angle = Phaser.Math.Angle.Between(this.x,this.y,pointer.x, pointer.y);
+    // let angle = Phaser.Math.Angle.Between(scene.mage.x,scene.mage.y,pointer.x, pointer.y);
     let angle_rounded = Math.abs(Math.round(angle));
 
-    switch(angle_rounded){
-      case 0:
-      case 1:
-        this.x = scene.mage.x + scene.mage.width/2;
-        break;
-      case 2:
-      case 3:
-        this.x = scene.mage.x - scene.mage.width;
-        break;
-    }
-    this.y = scene.mage.y;
+    // switch(angle_rounded){
+    //   case 0:
+    //   case 1:
+    //     this.x = scene.mage.x + scene.mage.width/2;
+    //     break;
+    //   case 2:
+    //   case 3:
+    //     this.x = scene.mage.x - scene.mage.width;
+    //     break;
+    // }
+    // this.y = scene.mage.y;
 
     // console.log("rad round: ",angle_rounded);
     // console.log("rad angle: ",angle);
     // console.log("deg angle: ",angle*180/Math.PI);
 
-    scene.physics.velocityFromRotation(angle, 400, this.orbVelocity);//this.level * something for speed depending on level
+    scene.physics.velocityFromRotation(angle, this.speed, this.orbVelocity);
     this.setVelocity(this.orbVelocity.x , this.orbVelocity.y);
 
   }

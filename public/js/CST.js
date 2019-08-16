@@ -12,7 +12,8 @@ export const CST = {
 
     SPRITE:{
       PLAYER: "player.png",
-      ORBS: "orbs.png"
+      ORBS: "orbs.png",
+      ARROW: "arrow.png"
     },
 
 }

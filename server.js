@@ -48,14 +48,13 @@ io.on('connection',function(socket){
     players[socket.id].y = newPosition.y;
     players[socket.id].flipX = newPosition.flipX;
     if(newPosition.orb2){
-      /*
-      players[socket.id].secondary.x = newPosition.orb2.x;
-      players[socket.id].secondary.y = newPosition.orb2.y;
-      players[socket.id].secondary.scaleX = newPosition.orb2.scale.x;
-      players[socket.id].secondary.scaleY = newPosition.orb2.scale.y;
-      */
       players[socket.id].secondary = newPosition.orb2;
     }
+    players[socket.id].arrow = newPosition.arrow;
+    players[socket.id].arrow_x = newPosition.arrow_x;
+    players[socket.id].arrow_y = newPosition.arrow_y;
+    players[socket.id].arrow_r = newPosition.arrow_r;
+    players[socket.id].arrow_scaleX = newPosition.arrow_scaleX;
     //broadcast movement to other clients
     socket.broadcast.emit('playerMoved',players[socket.id]);
   });
@@ -67,6 +66,11 @@ io.on('connection',function(socket){
       players[socket.id].secondary = idlePosition.orb2;
 
     }
+    players[socket.id].arrow = idlePosition.arrow;
+    players[socket.id].arrow_x = idlePosition.arrow_x;
+    players[socket.id].arrow_y = idlePosition.arrow_y;
+    players[socket.id].arrow_r = idlePosition.arrow_r;
+    players[socket.id].arrow_scaleX = idlePosition.arrow_scaleX;
     //broadcast movement to other clients
     socket.broadcast.emit('playerStopped',players[socket.id]);
   });
@@ -130,6 +134,7 @@ io.on('connection',function(socket){
   });
 
   socket.on('orbDestroy',function(id){
+    delete orbs[id];
     socket.broadcast.emit('orbDestroyed', id);
   });
   socket.on('orbSwap',function(){
@@ -149,8 +154,14 @@ getSideCount();
 function generateOrb(offset,prefix){
   let orbId = uniqid("orb"+prefix+"-");
   // console.log("id",orbId)
+  if(offset > 0){
+    orbX = Math.max(Math.floor(Math.random() * 400) + offset,415);
+  }
+  else{
+    orbX = Math.min(Math.floor(Math.random() * 385) + offset,385);
+  }
   orbs[orbId] = {
-    x: Math.floor(Math.random() * 400) + offset,
+    x: orbX,
     y: Math.floor(Math.random() * 500) + 50,
     // type: 'fire',
     orbId: orbId,
@@ -160,7 +171,8 @@ function generateOrb(offset,prefix){
 }
 
 function getSideCount(){
-  if(Object.keys(players).length > 1){
+  if(Object.keys(players).length > 0){ //for testing
+  // if(Object.keys(players).length > 1){
     // console.log("orbs count:",Object.keys(orbs).length);
     side.left = 0;
     side.right = 0;
@@ -172,17 +184,18 @@ function getSideCount(){
         side.right++;
       }
     });
-    // console.log("left",side.left,"right",side.right);
+    console.log("left",side.left,"right",side.right);
 
     if(side.left < 5){
       generateOrb(0,"_l");
     }
+
     if(side.right < 5){
       generateOrb(400,"_r");
     }
 
   }
-  setTimeout(getSideCount,5000);
+  setTimeout(getSideCount,2500);
 }
 
 function uniqid(a = "",b = false){
