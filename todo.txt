@@ -1,0 +1,17 @@
+- orb throw charging
+- player hp system
+ > 20 hp (?)
+ > player respawns after 2-3 seconds after dying
+- orbs to elemental orbs
+ > fire : [common] deals damage that increases per stack
+ > water : [common] deals a little damage and slows target (increases effect and duration per stack)
+ > leaf : [common] deals a little damage and saps health from target (increases effect and duration per stack)
+ > lightning : [uncommon] deals no damage but stuns the target (duration increases per stack)
+ > void : [special] not stackable. destroys orbs in a certain radius. will include player orbs if player is in radius
+ > blank : [special] not stackable. will act as a stack for any non-special orb.
+ * special orbs cannot be placed on the base
+- base for each side
+ > has hp
+ > will have a random orb to begin with
+ > orb can be replaced by player's primary orb, probably press E while overlapping base
+ > if orb is fire, water orb can only damage it, etc
