@@ -1,3 +1,4 @@
+- idle emit refactor
 - player hp system
  > 20 hp (?)
  > player respawns after 2-3 seconds after dying
