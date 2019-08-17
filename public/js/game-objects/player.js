@@ -18,7 +18,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.x = x;
     this.y = y;
     this.axis = new Phaser.Math.Vector2();
-    this.speed = 120;
+    this.speed = 100;
     this.setScale(2);
     this.setSize(8,21).setOffset(12,5);
     this.orb1 = null;
