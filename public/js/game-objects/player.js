@@ -167,32 +167,65 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       if(mage.orb2){console.log("orb2: ",mage.orb2.id,mage.orb2.type," : ",mage.orb2.level);}
     }, null, scene);//player-orb overlap
 
+/*
     scene.physics.add.overlap(this,scene.enemyProjectiles,function(mage, projectile){
-      this.socket.emit('projectileDestroy',projectile.id);
+      console.log("ouchie got hit")
+      mage.isHit(scene,mage,projectile);
+      // this.socket.emit('projectileDestroy',projectile.id);
       projectile.destroy();
-              mage.currentHp --;
-      if(projectile.type == "rock"){
-        let burn = scene.time.addEvent({
-          delay: ﻿800,
-          callback: function(){
-              mage.currentHp--;
-              mage.updateHpValue();
-          },
-          repeat: (projectile.level - 1)});﻿﻿﻿
-      }
-      else if(projectile.type == "paper"){
-        mage.speed -= 70;
-        setTimeout(function(){
-        mage.speed = 120;
-        }, projectile.level * 1000);
-      }
-      else if(projectile.type == "scissors"){
-        scene.socket.emit('hpDrain', projectile.level);
-      }
-      mage.updateHpValue();
+      //
+      //         mage.currentHp --;
+      // if(projectile.type == "rock"){
+      //   let burn = scene.time.addEvent({
+      //     delay: ﻿800,
+      //     callback: function(){
+      //         mage.currentHp--;
+      //         mage.updateHpValue();
+      //     },
+      //     repeat: (projectile.level - 1)});﻿﻿﻿
+      // }
+      // else if(projectile.type == "paper"){
+      //   mage.speed -= 70;
+      //   setTimeout(function(){
+      //   mage.speed = 120;
+      //   }, projectile.level * 1000);
+      // }
+      // else if(projectile.type == "scissors"){
+      //   scene.socket.emit('hpDrain', projectile.level);
+      // }
+      // mage.updateHpValue();
     }, null, scene);//player-projectile overlap
-    //do a socket event for the orb effects
+//*/
+
+    scene.physics.add.overlap(scene.enemyMages,scene.ownProjectiles,function(enemy, projectile){
+      scene.socket.emit('playerHit', {projectileId: projectile.id,playerId: enemy.playerId});
+      projectile.destroy();
+    }, null, scene);//enemy-ownprojectile overlap
+
     scene.physics.add.collider(this, scene.walls);
+  }
+
+  isHit(scene,mage,projectile){
+    mage.currentHp --;
+    if(projectile.type == "rock"){
+      let burn = scene.time.addEvent({
+        delay: ﻿800,
+        callback: function(){
+            mage.currentHp--;
+            mage.updateHpValue();
+        },
+        repeat: (projectile.level - 1)});﻿﻿﻿
+    }
+    else if(projectile.type == "paper"){
+      mage.speed -= 70;
+      setTimeout(function(){
+      mage.speed = 120;
+      }, projectile.level * 1000);
+    }
+    else if(projectile.type == "scissors"){
+      scene.socket.emit('hpDrain', projectile.level);
+    }
+    mage.updateHpValue();
   }
 
   update(scene){

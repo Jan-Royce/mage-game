@@ -77,6 +77,10 @@ io.on('connection',function(socket){
     //broadcast movement to other clients
     socket.broadcast.emit('playerStopped',players[socket.id]);
   });
+  socket.on('playerHit',function(projectileId){
+    socket.broadcast.emit('playerGotHit',projectileId);
+  });
+
 
   socket.on('hpUpdate',function(hp){
     socket.broadcast.emit('hpUpdated',{playerId:socket.id,hp:hp});
@@ -212,7 +216,6 @@ function countPlayers(){
     right: 0
   };
   Object.keys(players).forEach(function(player){
-    console.log("player",player)
     if(players[player].x <= 400){side.left++;}
     else{side.right++;}
   });

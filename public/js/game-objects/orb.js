@@ -121,7 +121,7 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
   throwOrb(scene,pointer){
 
     this.fired = true;
-    
+
     scene.ownProjectiles.add(this);
     this.socket.emit('projectileCreate',this.id);
 

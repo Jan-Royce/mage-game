@@ -518,6 +518,24 @@ export class GameScene extends Phaser.Scene{
           }
         });
       });
+      this.socket.on('playerGotHit', (hit) => {
+        let projectile;
+        self.enemyProjectiles.getChildren().forEach(function(orbProjectile){
+          if(orbProjectile.id == hit.projectileId){
+            projectile = orbProjectile;
+            orbProjectile.destroy();
+          }
+        });
+        self.ownProjectiles.getChildren().forEach(function(orbProjectile){
+          if(orbProjectile.id == hit.projectileId){
+            projectile = orbProjectile;
+            orbProjectile.destroy();
+          }
+        });
+        if(hit.playerId == self.socket.id){
+          self.mage.isHit(self,self.mage,projectile)
+        }
+      });
       this.socket.on('hpUpdated', (playerInfo) => {
         self.enemyMages.getChildren().forEach(function(otherPlayer){
           if(playerInfo.playerId === otherPlayer.playerId){
