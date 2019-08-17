@@ -193,12 +193,12 @@ export class GameScene extends Phaser.Scene{
     this.enemyProjectiles = this.physics.add.group();
     this.sockets()
 
-/*
+//*
     this.physics.add.overlap(this.ownProjectiles, this.enemyMages, (orb, enemy) =>{
        enemy.tint = Math.random() * 0xffffff;
        orb.destroyOrb();
     }, null, this);
-*/
+//*/
 
     //<editor-fold> animations
     // this.anims.create({
@@ -478,12 +478,6 @@ export class GameScene extends Phaser.Scene{
       });
     });
 
-
-    // this.enemyMages.getChildren().forEach(function(otherPlayer){
-    //   otherPlayer.hpGui.x = otherPlayer.x;
-    //   otherPlayer.hpGui.y = otherPlayer.y-otherPlayer.height;
-    // });
-
       this.socket.on('playerMoved', (playerInfo) => {
         self.enemyMages.getChildren().forEach(function(otherPlayer){
           if(playerInfo.playerId === otherPlayer.playerId){
@@ -568,7 +562,7 @@ function createOrb(self, newOrb){
 
 function updatePlayerOrb(self,playerInfo){
   self.enemyMages.getChildren().forEach((enemy) =>{
-    console.log(playerInfo);
+    // console.log(playerInfo);
     if(enemy.primary){
       enemy.primary.x = playerInfo.primary.x;
       enemy.primary.y = playerInfo.primary.y;
