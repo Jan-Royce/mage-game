@@ -18,8 +18,9 @@ app.get('/',function(req,res){
 
 io.on('connection',function(socket){
   console.log('a player has connected');
+  let playerSides = countPlayers();
   let side = 0;
-  if(Object.keys(players).length % 2 != 0){
+  if(playerSides.left == playerSides.right || playerSides.right < playerSides.left){
     side = 400;
   }
 
@@ -203,6 +204,19 @@ function getSideCount(){
 
   }
   setTimeout(getSideCount,2500);
+}
+
+function countPlayers(){
+  let side = {
+    left: 0,
+    right: 0
+  };
+  Object.keys(players).forEach(function(player){
+    console.log("player",player)
+    if(players[player].x <= 400){side.left++;}
+    else{side.right++;}
+  });
+  return side;
 }
 
 function uniqid(a = "",b = false){
