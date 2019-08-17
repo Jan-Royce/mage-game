@@ -36,10 +36,11 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
     this.anims.play(this.type+this.level, true);
 
     this.setInteractive();
-
+    /*
     this.on('pointerup',function(){
       console.log(this.x,this.y);
     }, this);
+    */
   }
 
   update(scene){
@@ -87,10 +88,10 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
         maxSpeed = 400;
         break;
       case 2:
-        maxSpeed = 500;
+        maxSpeed = 600;
         break;
       case 3:
-        maxSpeed = 600;
+        maxSpeed = 800;
         break;
     }
     this.maxSpeed = maxSpeed;
@@ -120,6 +121,7 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
   throwOrb(scene,pointer){
 
     this.fired = true;
+    
     scene.ownProjectiles.add(this);
     this.socket.emit('projectileCreate',this.id);
 

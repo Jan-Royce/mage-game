@@ -351,6 +351,7 @@ export class GameScene extends Phaser.Scene{
         self.enemyMages.getChildren().forEach(function(otherPlayer){
           if(playerId === otherPlayer.playerId){
             otherPlayer.destroy();
+            otherPlayer.hpGui.destroy();
           }
         });
       });
@@ -489,13 +490,16 @@ export class GameScene extends Phaser.Scene{
             otherPlayer.setPosition(playerInfo.x,playerInfo.y);
             otherPlayer.flipX = playerInfo.flipX;
             otherPlayer.anims.play('walk', true);
+            console.log(playerInfo);
             updatePlayerOrb(self,playerInfo);
-            if(playerInfo.arrow){
-              otherPlayer.arrow.visible = true;
-              otherPlayer.arrow.x = playerInfo.arrow_x;
-              otherPlayer.arrow.y = playerInfo.arrow_y;
-              otherPlayer.arrow.rotation = playerInfo.arrow_r;
-              otherPlayer.arrow.scaleX = playerInfo.arrow_scaleX;
+
+            if(playerInfo.arrow.visible){
+              otherPlayer.arrow.visible = playerInfo.arrow.visible;
+              otherPlayer.arrow.x = playerInfo.arrow.x;
+              otherPlayer.arrow.y = playerInfo.arrow.y;
+              otherPlayer.arrow.rotation = playerInfo.arrow.rotation;
+              otherPlayer.arrow.scaleX = playerInfo.arrow.scaleX;
+              otherPlayer.arrow.tint = playerInfo.arrow.color;
             }
             otherPlayer.hpGui.x = playerInfo.hp_x;
             otherPlayer.hpGui.y = playerInfo.hp_y;
@@ -509,12 +513,13 @@ export class GameScene extends Phaser.Scene{
             otherPlayer.flipX = playerInfo.flipX;
             otherPlayer.anims.play('idle', true);
             updatePlayerOrb(self,playerInfo);
-            if(playerInfo.arrow){
-              otherPlayer.arrow.visible = true;
-              otherPlayer.arrow.x = playerInfo.arrow_x;
-              otherPlayer.arrow.y = playerInfo.arrow_y;
-              otherPlayer.arrow.rotation = playerInfo.arrow_r;
-              otherPlayer.arrow.scaleX = playerInfo.arrow_scaleX;
+            if(playerInfo.arrow.visible){
+              otherPlayer.arrow.visible = playerInfo.arrow.visible;
+              otherPlayer.arrow.x = playerInfo.arrow.x;
+              otherPlayer.arrow.y = playerInfo.arrow.y;
+              otherPlayer.arrow.rotation = playerInfo.arrow.rotation;
+              otherPlayer.arrow.scaleX = playerInfo.arrow.scaleX;
+              otherPlayer.arrow.tint = playerInfo.arrow.color;
             }
           }
         });
@@ -528,7 +533,15 @@ export class GameScene extends Phaser.Scene{
           }
         });
       });
- }
+
+      this.socket.on('hpDrained', (orbLevel) =>{
+        if(self.mage.currentHp < self.mage.maxHp){
+            console.log(orbLevel);
+            self.mage.currentHp += orbLevel;
+            self.mage.updateHpValue();
+        }
+      })
+    }
 }
 
 
@@ -555,11 +568,10 @@ function createOrb(self, newOrb){
 
 function updatePlayerOrb(self,playerInfo){
   self.enemyMages.getChildren().forEach((enemy) =>{
+    console.log(playerInfo);
     if(enemy.primary){
-      enemy.primary.x = !enemy.flipX ? enemy.x - 10 :
-                        enemy.flipX ? enemy.x + 10 :
-                        enemy.primary.x;
-      enemy.primary.y = enemy.y;
+      enemy.primary.x = playerInfo.primary.x;
+      enemy.primary.y = playerInfo.primary.y;
     }
     if(enemy.secondary){
       enemy.secondary.x = playerInfo.secondary.x;
