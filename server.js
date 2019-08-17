@@ -20,7 +20,7 @@ io.on('connection',function(socket){
   console.log('a player has connected');
   let playerSides = countPlayers();
   let side = 0;
-  if(playerSides.left == playerSides.right || playerSides.right < playerSides.left){
+  if(playerSides.right < playerSides.left){
     side = 400;
   }
 
