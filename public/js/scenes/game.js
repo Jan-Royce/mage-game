@@ -484,7 +484,7 @@ export class GameScene extends Phaser.Scene{
             otherPlayer.setPosition(playerInfo.x,playerInfo.y);
             otherPlayer.flipX = playerInfo.flipX;
             otherPlayer.anims.play('walk', true);
-            console.log(playerInfo);
+            // console.log(playerInfo);
             updatePlayerOrb(self,playerInfo);
 
             if(playerInfo.arrow.visible){
