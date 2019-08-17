@@ -156,11 +156,11 @@ myGame.scenes.push(gameScene);
 */
 
 export class GameScene extends Phaser.Scene{
+
   constructor(){
     super({
       key: CST.SCENES.GAME,
     })
-
   }
 
   init(){

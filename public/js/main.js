@@ -15,6 +15,4 @@ let game = new Phaser.Game({
   render:{
     pixelArt: true,
   },
-
-
 });
