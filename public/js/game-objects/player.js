@@ -106,6 +106,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     scene.pickupSound = scene.sound.add(CST.AUDIO.PICKUP);
 
+    scene.hitFireSound = scene.sound.add(CST.AUDIO.HIT_FIRE);
+    scene.hitWaterSound = scene.sound.add(CST.AUDIO.HIT_WATER);
+    scene.hitGrassSound = scene.sound.add(CST.AUDIO.HIT_GRASS);
+
     scene.physics.add.overlap(scene.allOrbs,this,function(mage, orb){
       if(!mage.orb1){
         scene.pickupSound.play({volume:.5});
@@ -208,6 +212,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   isHit(scene,mage,projectile){
     mage.currentHp --;
     if(projectile.type == "fire"){
+      scene.hitFireSound.play();
       let burn = scene.time.addEvent({
         delay: ﻿800,
         callback: function(){
@@ -217,12 +222,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         repeat: (projectile.level - 1)});﻿﻿﻿
     }
     else if(projectile.type == "water"){
+      scene.hitWaterSound.play();
       mage.speed -= 70;
       setTimeout(function(){
       mage.speed = 120;
       }, projectile.level * 1000);
     }
     else if(projectile.type == "grass"){
+      scene.hitGrassSound.play();
       scene.socket.emit('hpDrain', projectile.level);
     }
     mage.updateHpValue();
