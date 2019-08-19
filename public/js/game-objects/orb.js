@@ -67,18 +67,23 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
 
   getOrbType(frame){
     let type = null;
+    let weaknesses = [];
     switch(frame){
       case 0:
         type = "fire";
+        weaknesses = ["water"];
         break;
       case 1:
         type = "water";
+        weaknesses = ["grass","lightning"];
         break;
       case 2:
         type = "grass";
+        weaknesses = ["fire"];
         break;
     }
     this.type = type;
+    this.weaknesses = weaknesses;
   }
 
   getMaxOrbSpeed(level){
@@ -193,7 +198,17 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
       */
     }, null, scene);
 
-    //projectile collisions here (?)
+    //projectile collisions
+    scene.physics.add.overlap(scene.ownProjectiles,scene.enemyProjectiles,function(ownProjectile, enemyProjectile){
+      // console.log(ownProjectile.type,ownProjectile.weaknesses,ownProjectile.weaknesses.includes(enemyProjectile.type))
+      // console.log(enemyProjectile.type,enemyProjectile.weaknesses,enemyProjectile.weaknesses.includes(ownProjectile.type))
+      if(ownProjectile.weaknesses.includes(enemyProjectile.type)){
+        ownProjectile.destroy();
+      }
+      if(enemyProjectile.weaknesses.includes(ownProjectile.type)){
+        enemyProjectile.destroy();
+      }
+    }, null, scene);
 
     // this.setActive(true);
     // this.setVisible(true);
