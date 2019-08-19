@@ -4,6 +4,11 @@ mage game with balls
 ### Changelog: 
 
 ```
+2019-08-19 8:53PM PHT
+-rough player respawn
+```
+
+```
 2019-08-19 4:13PM PHT
 -switched orbs to elements
 -added projectile collisions
