@@ -69,13 +69,13 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
     let type = null;
     switch(frame){
       case 0:
-        type = "rock";
+        type = "fire";
         break;
       case 1:
-        type = "paper";
+        type = "water";
         break;
       case 2:
-        type = "scissors";
+        type = "grass";
         break;
     }
     this.type = type;
@@ -142,7 +142,7 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
         scene.popSound.play({volume:.05});
       }
       /*
-      else if(orb.type == "rock" && other.type == "paper"){
+      else if(orb.type == "fire" && other.type == "water"){
         other.changeOrbLevel(other.level - orb.level);
         // other.level = other.level - orb.level;
         if(other.level <= 0){
@@ -150,7 +150,7 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
         }
         orb.destroyOrb();
       }
-      else if(orb.type == "rock" && other.type == "scissors"){
+      else if(orb.type == "fire" && other.type == "grass"){
         orb.changeOrbLevel(orb.level - other.level);
         // orb.level = orb.level - other.level;
         if(orb.level <= 0){
@@ -158,7 +158,7 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
         }
         other.destroyOrb();
       }
-      else if(orb.type == "paper" && other.type == "rock"){
+      else if(orb.type == "water" && other.type == "fire"){
         orb.changeOrbLevel(orb.level - other.level);
         // orb.level = orb.level - other.level;
         if(orb.level <= 0){
@@ -166,7 +166,7 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
         }
         other.destroyOrb();
       }
-      else if(orb.type == "paper" && other.type == "scissors"){
+      else if(orb.type == "water" && other.type == "grass"){
         other.changeOrbLevel(other.level - orb.level);
         // other.level = other.level - orb.level;
         if(other.level <= 0){
@@ -174,7 +174,7 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
         }
         orb.destroyOrb();
       }
-      else if(orb.type == "scissors" && other.type == "rock"){
+      else if(orb.type == "grass" && other.type == "fire"){
         other.changeOrbLevel(other.level - orb.level);
         // other.level = other.level - orb.level;
         if(other.level <= 0){
@@ -182,7 +182,7 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
         }
         orb.destroyOrb();
       }
-      else if(orb.type == "scissors" && other.type == "paper"){
+      else if(orb.type == "grass" && other.type == "water"){
         orb.changeOrbLevel(orb.level - other.level);
         // orb.level = orb.level - other.level;
         if(orb.level <= 0){

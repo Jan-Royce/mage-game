@@ -110,7 +110,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       if(!mage.orb1){
         scene.pickupSound.play({volume:.5});
         //console.log(Math.round(orb.frame.name/9))
-        mage.orb1 = new Orb(scene, mage.x, mage.y, orb.texture.key, Math.round(orb.frame.name/9), orb.id, orb.level);
+        mage.orb1 = new Orb(scene, mage.x, mage.y, orb.texture.key, Math.round(orb.frame.name/18), orb.id, orb.level);
         orb.destroy();
         //orb.body.enable = false;
         //orb.setActive(false).setVisible(false);
@@ -138,7 +138,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       }
       else if(!mage.orb2){
         scene.pickupSound.play({volume:.5});
-        mage.orb2 = new Orb(scene, mage.x, mage.y, orb.texture.key, Math.round(orb.frame.name/9), orb.id, orb.level);
+        mage.orb2 = new Orb(scene, mage.x, mage.y, orb.texture.key, Math.round(orb.frame.name/18), orb.id, orb.level);
 
         orb.destroy();
         //orb.body.enable = false;
@@ -175,7 +175,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       projectile.destroy();
       //
       //         mage.currentHp --;
-      // if(projectile.type == "rock"){
+      // if(projectile.type == "fire"){
       //   let burn = scene.time.addEvent({
       //     delay: ﻿800,
       //     callback: function(){
@@ -184,13 +184,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       //     },
       //     repeat: (projectile.level - 1)});﻿﻿﻿
       // }
-      // else if(projectile.type == "paper"){
+      // else if(projectile.type == "water"){
       //   mage.speed -= 70;
       //   setTimeout(function(){
       //   mage.speed = 120;
       //   }, projectile.level * 1000);
       // }
-      // else if(projectile.type == "scissors"){
+      // else if(projectile.type == "grass"){
       //   scene.socket.emit('hpDrain', projectile.level);
       // }
       // mage.updateHpValue();
@@ -207,7 +207,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   isHit(scene,mage,projectile){
     mage.currentHp --;
-    if(projectile.type == "rock"){
+    if(projectile.type == "fire"){
       let burn = scene.time.addEvent({
         delay: ﻿800,
         callback: function(){
@@ -216,13 +216,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         },
         repeat: (projectile.level - 1)});﻿﻿﻿
     }
-    else if(projectile.type == "paper"){
+    else if(projectile.type == "water"){
       mage.speed -= 70;
       setTimeout(function(){
       mage.speed = 120;
       }, projectile.level * 1000);
     }
-    else if(projectile.type == "scissors"){
+    else if(projectile.type == "grass"){
       scene.socket.emit('hpDrain', projectile.level);
     }
     mage.updateHpValue();

@@ -222,55 +222,27 @@ export class GameScene extends Phaser.Scene{
     // });
 
     this.anims.create({
-        key: "rock1",
+        key: "fire1",
         frames: this.anims.generateFrameNumbers("orbs", {
             start: 0,
-            end: 2
-        }),
-        frameRate: 5,
-        repeat: -1
-    });
-    this.anims.create({
-        key: "rock2",
-        frames: this.anims.generateFrameNumbers("orbs", {
-            start: 3,
             end: 5
         }),
         frameRate: 5,
         repeat: -1
     });
     this.anims.create({
-        key: "rock3",
+        key: "fire2",
         frames: this.anims.generateFrameNumbers("orbs", {
             start: 6,
-            end: 8
-        }),
-        frameRate: 5,
-        repeat: -1
-    });
-
-    this.anims.create({
-        key: "paper1",
-        frames: this.anims.generateFrameNumbers("orbs", {
-            start: 9,
             end: 11
         }),
         frameRate: 5,
         repeat: -1
     });
     this.anims.create({
-        key: "paper2",
+        key: "fire3",
         frames: this.anims.generateFrameNumbers("orbs", {
             start: 12,
-            end: 14
-        }),
-        frameRate: 5,
-        repeat: -1
-    });
-    this.anims.create({
-        key: "paper3",
-        frames: this.anims.generateFrameNumbers("orbs", {
-            start: 15,
             end: 17
         }),
         frameRate: 5,
@@ -278,28 +250,56 @@ export class GameScene extends Phaser.Scene{
     });
 
     this.anims.create({
-        key: "scissors1",
+        key: "water1",
         frames: this.anims.generateFrameNumbers("orbs", {
             start: 18,
-            end: 20
-        }),
-        frameRate: 5,
-        repeat: -1
-    });
-    this.anims.create({
-        key: "scissors2",
-        frames: this.anims.generateFrameNumbers("orbs", {
-            start: 21,
             end: 23
         }),
         frameRate: 5,
         repeat: -1
     });
     this.anims.create({
-        key: "scissors3",
+        key: "water2",
         frames: this.anims.generateFrameNumbers("orbs", {
             start: 24,
-            end: 26
+            end: 29
+        }),
+        frameRate: 5,
+        repeat: -1
+    });
+    this.anims.create({
+        key: "water3",
+        frames: this.anims.generateFrameNumbers("orbs", {
+            start: 30,
+            end: 35
+        }),
+        frameRate: 5,
+        repeat: -1
+    });
+
+    this.anims.create({
+        key: "grass1",
+        frames: this.anims.generateFrameNumbers("orbs", {
+            start: 36,
+            end: 41
+        }),
+        frameRate: 5,
+        repeat: -1
+    });
+    this.anims.create({
+        key: "grass2",
+        frames: this.anims.generateFrameNumbers("orbs", {
+            start: 42,
+            end: 47
+        }),
+        frameRate: 5,
+        repeat: -1
+    });
+    this.anims.create({
+        key: "grass3",
+        frames: this.anims.generateFrameNumbers("orbs", {
+            start: 48,
+            end: 53
         }),
         frameRate: 5,
         repeat: -1
@@ -364,7 +364,7 @@ export class GameScene extends Phaser.Scene{
           if (pickUp.orbId === orb.id) {
             self.enemyMages.getChildren().forEach(function (otherPlayer) {
              if (pickUp.playerId === otherPlayer.playerId) {
-                otherPlayer.primary = new Orb(self, otherPlayer.x,otherPlayer.y,'orbs', Math.round(orb.frame.name/9),orb.id);
+                otherPlayer.primary = new Orb(self, otherPlayer.x,otherPlayer.y,'orbs', Math.round(orb.frame.name/18),orb.id);
                 otherPlayer.primary.setScale(1.2);
              }
             });
@@ -390,7 +390,7 @@ export class GameScene extends Phaser.Scene{
           if (pickUp.orbId === orb.id) {
             self.enemyMages.getChildren().forEach(function (otherPlayer) {
              if (pickUp.playerId === otherPlayer.playerId) {
-                otherPlayer.secondary = new Orb(self, otherPlayer.x,otherPlayer.y,'orbs', Math.round(orb.frame.name/9),orb.id);
+                otherPlayer.secondary = new Orb(self, otherPlayer.x,otherPlayer.y,'orbs', Math.round(orb.frame.name/18),orb.id);
              }
             });
             orb.destroy();
@@ -547,11 +547,9 @@ export class GameScene extends Phaser.Scene{
       });
 
       this.socket.on('hpDrained', (orbLevel) =>{
-        if(self.mage.currentHp < self.mage.maxHp){
-            console.log(orbLevel);
-            self.mage.currentHp += orbLevel;
-            self.mage.updateHpValue();
-        }
+          console.log(orbLevel);
+          self.mage.currentHp = Math.min(self.mage.currentHp+orbLevel,self.mage.maxHp);
+          self.mage.updateHpValue();
       })
     }
 }
