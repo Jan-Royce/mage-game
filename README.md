@@ -4,6 +4,17 @@ mage game with balls
 ### Changelog: 
 
 ```
+2019-08-19 4:13PM PHT
+-switched orbs to elements
+-added projectile collisions
+-added some orb-player collision sfx
+-added bases (w/ placeholder sprite)
+-bases orb set with sync
+-base-projectile collision + hp system with sync
+-added middle wall placeholder sprite
+```
+
+```
 2019-08-17 2:43AM PHT
 - fixed a couple of bugs regarding throwing, charging, swapping and player-projectile collision
 - added a little hp system for the players (also synced) > still has a bug with the text creation
