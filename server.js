@@ -40,7 +40,7 @@ io.on('connection',function(socket){
     playerX = Math.max(Math.floor(Math.random() * 400) + side,425);
   }
   else{
-    playerX = Math.min(Math.floor(Math.random() * 385) + side,375);
+    playerX = Math.max(Math.floor(Math.random() * 375) + side,16);
   }
 
   players[socket.id] = {

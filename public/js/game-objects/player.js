@@ -250,7 +250,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       scene.hitWaterSound.play();
       mage.speed -= 70;
       setTimeout(function(){
-      mage.speed = 120;
+      mage.speed = 100;
       }, projectile.level * 1000);
     }
     else if(projectile.type == "grass"){
@@ -397,8 +397,24 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       current: this.currentHp,
       max: this.maxHp
     };
+    if(this.currentHp <= 0){
+      this.speed = 0;
+      setTimeout(this.respawn.bind(null,this),5000);
+    }
     this.socket.emit('hpUpdate', hp);
   }
 
+  respawn(mage){
+    if(mage.side == "left"){
+      mage.x = Math.max(Math.floor(Math.random() * 375),16);
+    }
+    else{
+      mage.x = Math.max(Math.floor(Math.random() * 400) + 400,425);
+    }
+    mage.y = Math.floor(Math.random() * 500) + 50;
+    mage.speed = 100;
+    mage.currentHp = 20;
+    mage.updateHpValue();
+  }
 
 }
