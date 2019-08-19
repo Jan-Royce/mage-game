@@ -179,12 +179,15 @@ export class GameScene extends Phaser.Scene{
         frameHeight: 17
     });
     this.load.image('arrow', '../sprites/arrow.png');
+    this.load.image('base', '../sprites/base.png');
+    this.load.image('wall', '../sprites/wall.png');
   }
 
   create(){
     var self = this;
 
     this.walls = this.physics.add.group();
+    this.bases = this.physics.add.group();
     this.enemyMages = this.physics.add.group({
       primary: null,
     });
@@ -306,9 +309,9 @@ export class GameScene extends Phaser.Scene{
     });
     //</editor-fold> animations
 
-    let divider = this.walls.create(this.game.config.width/2, this.game.config.height/2).setImmovable(true);
+    let divider = this.walls.create(this.game.config.width/2, this.game.config.height/2,'wall').setImmovable(true);
     divider.scaleY = 20;
-    divider.setVisible(false);
+    // divider.setVisible(false);
   }
 
 
@@ -325,13 +328,15 @@ export class GameScene extends Phaser.Scene{
  sockets(){
    this.socket = io();
    var self = this;
-      this.socket.on('currentPlayers', (players) => {
+      this.socket.on('currentPlayers', (gameInfo) => {
+         let players = gameInfo["players"];
          Object.keys(players).forEach( (id) => {
            if(players[id].playerId != self.socket.id){
                addOtherPlayers(self,players[id]);
                return;
            }
            self.mage = new Player(self, players[id].x, players[id].y, CST.SPRITE.PLAYER);
+           createBases(self,gameInfo["bases"]);
          })
       });
 
@@ -477,6 +482,31 @@ export class GameScene extends Phaser.Scene{
         otherPlayer.secondary = temp;
       });
     });
+    this.socket.on('baseInteracted', function(interact){
+      self.bases.getChildren().forEach(function(base){
+        if(base.baseId == interact.baseId){
+          self.enemyMages.getChildren().forEach(function(mage){
+            if(mage.playerId == interact.playerId){
+              let temp = base.orb;
+              base.orb = mage.primary;
+              base.orb.x = base.x;
+              base.orb.y = base.y;
+
+              if(temp){
+                mage.primary = temp;
+              }
+              else if(!temp && mage.secondary){
+                mage.primary = mage.secondary;
+                mage.secondary = null;
+              }
+              else if(!temp && !mage.secondary){
+                mage.primary = null;
+              }
+            }
+          });
+        }
+      });
+    });
 
       this.socket.on('playerMoved', (playerInfo) => {
         self.enemyMages.getChildren().forEach(function(otherPlayer){
@@ -545,6 +575,14 @@ export class GameScene extends Phaser.Scene{
           }
         });
       });
+      this.socket.on('baseDamaged', (damage) => {
+        self.bases.getChildren().forEach(function(base){
+          if(base.baseId == damage.baseId){
+            base.hp = damage.hp;
+            base.hpGui.setText(base.hp);
+          }
+        });
+      });
 
       this.socket.on('hpDrained', (orbLevel) =>{
           console.log(orbLevel);
@@ -569,6 +607,29 @@ function addOtherPlayers(self, playerInfo){
   otherPlayer.currentHp = 20;
   otherPlayer.maxHp = 20;
   otherPlayer.hpGui = self.add.text(playerInfo.x, playerInfo.y-otherPlayer.height,`${otherPlayer.currentHp}/${otherPlayer.maxHp}`).setOrigin(0.5,0.5);
+}
+
+function createBases(self, bases){
+  let leftBase = self.bases.create(bases.left.x, bases.left.y,'base').setImmovable(true).setScale(2).setOrigin(0.5,0.5).setDepth(-1);
+  leftBase.baseId = bases.left.id;
+  leftBase.orb = null;
+  leftBase.hp = 20;
+  leftBase.hpGui = self.add.text(bases.left.x, bases.left.y-leftBase.height,leftBase.hp).setOrigin(0.5,0.5);
+
+  let rightBase = self.bases.create(bases.right.x, bases.right.y,'base').setImmovable(true).setScale(2).setOrigin(0.5,0.5).setDepth(-1);
+  rightBase.baseId = bases.right.id;
+  rightBase.orb = null;
+  rightBase.hp = 20;
+  rightBase.hpGui = self.add.text(bases.right.x, bases.right.y-rightBase.height,rightBase.hp).setOrigin(0.5,0.5);
+
+  if(self.mage.side == "left"){
+    self.ownBase = leftBase;
+    self.enemyBase = rightBase;
+  }
+  else if(self.mage.side == "right"){
+    self.ownBase = rightBase;
+    self.enemyBase = leftBase;
+  }
 }
 
 function createOrb(self, newOrb){

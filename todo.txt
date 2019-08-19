@@ -12,6 +12,6 @@
  * special orbs cannot be placed on the base
 - base for each side
  > has hp
- > will have a random orb to begin with
+ > will have a no orb to begin, takes damage from any orb
  > orb can be replaced by player's primary orb, probably press E while overlapping base
  > if orb is fire, water orb can only damage it, etc

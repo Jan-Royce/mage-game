@@ -8,6 +8,18 @@ var side = {
   left: 0,
   right: 0
 };
+var bases = {
+  left: {
+    id: uniqid("b_left-"),
+    x: 40,
+    y: Math.floor(Math.random() * 500) + 50,
+  },
+  right: {
+    id: uniqid("b_right-"),
+    x: 736,
+    y: Math.floor(Math.random() * 500) + 50,
+  }
+}
 
 app.use(express.static(__dirname + '/public'));
 
@@ -24,8 +36,15 @@ io.on('connection',function(socket){
     side = 400;
   }
 
+  if(side > 0){
+    playerX = Math.max(Math.floor(Math.random() * 400) + side,425);
+  }
+  else{
+    playerX = Math.min(Math.floor(Math.random() * 385) + side,375);
+  }
+
   players[socket.id] = {
-    x: Math.floor(Math.random() * 400) + side,
+    x: playerX,
     y: Math.floor(Math.random() * 500) + 50,
     flipX: false,
     primary: {},
@@ -33,7 +52,7 @@ io.on('connection',function(socket){
     playerId: socket.id
   };
   //send player object to the new player
-  socket.emit('currentPlayers', players);
+  socket.emit('currentPlayers', {players:players,bases:bases});
   socket.emit('currentOrbs', orbs);
   //update other players with the new player
   socket.broadcast.emit('newPlayer', players[socket.id]);
@@ -84,6 +103,9 @@ io.on('connection',function(socket){
 
   socket.on('hpUpdate',function(hp){
     socket.broadcast.emit('hpUpdated',{playerId:socket.id,hp:hp});
+  });
+  socket.on('baseDamage',function(damage){
+    socket.broadcast.emit('baseDamaged',damage);
   });
 
   socket.on('orbGetPrimary',function(orbProp){
@@ -148,6 +170,9 @@ io.on('connection',function(socket){
   socket.on('orbSwap',function(){
     socket.broadcast.emit('orbSwapped');
   });
+  socket.on('baseInteract',function(baseId){
+    socket.broadcast.emit('baseInteracted',{baseId:baseId,playerId:socket.id});
+  });
   socket.on('orbLevelChange',function(orbInfo){
     socket.broadcast.emit('orbLevelChanged', orbInfo);
   });
@@ -183,8 +208,8 @@ function generateOrb(offset,prefix){
 }
 
 function getSideCount(){
-  if(Object.keys(players).length > 0){ //for testing
-  // if(Object.keys(players).length > 1){
+  // if(Object.keys(players).length > 0){ //for testing
+  if(Object.keys(players).length > 1){
     // console.log("orbs count:",Object.keys(orbs).length);
     side.left = 0;
     side.right = 0;

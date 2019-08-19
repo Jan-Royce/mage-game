@@ -146,69 +146,39 @@ export class Orb extends Phaser.Physics.Arcade.Sprite{
         }
         scene.popSound.play({volume:.05});
       }
-      /*
-      else if(orb.type == "fire" && other.type == "water"){
-        other.changeOrbLevel(other.level - orb.level);
-        // other.level = other.level - orb.level;
-        if(other.level <= 0){
-          other.destroyOrb();
-        }
-        orb.destroyOrb();
-      }
-      else if(orb.type == "fire" && other.type == "grass"){
-        orb.changeOrbLevel(orb.level - other.level);
-        // orb.level = orb.level - other.level;
-        if(orb.level <= 0){
-          orb.destroyOrb();
-        }
-        other.destroyOrb();
-      }
-      else if(orb.type == "water" && other.type == "fire"){
-        orb.changeOrbLevel(orb.level - other.level);
-        // orb.level = orb.level - other.level;
-        if(orb.level <= 0){
-          orb.destroyOrb();
-        }
-        other.destroyOrb();
-      }
-      else if(orb.type == "water" && other.type == "grass"){
-        other.changeOrbLevel(other.level - orb.level);
-        // other.level = other.level - orb.level;
-        if(other.level <= 0){
-          other.destroyOrb();
-        }
-        orb.destroyOrb();
-      }
-      else if(orb.type == "grass" && other.type == "fire"){
-        other.changeOrbLevel(other.level - orb.level);
-        // other.level = other.level - orb.level;
-        if(other.level <= 0){
-          other.destroyOrb();
-        }
-        orb.destroyOrb();
-      }
-      else if(orb.type == "grass" && other.type == "water"){
-        orb.changeOrbLevel(orb.level - other.level);
-        // orb.level = orb.level - other.level;
-        if(orb.level <= 0){
-          orb.destroyOrb();
-        }
-        other.destroyOrb();
-      }
-      */
     }, null, scene);
 
     //projectile collisions
     scene.physics.add.overlap(scene.ownProjectiles,scene.enemyProjectiles,function(ownProjectile, enemyProjectile){
-      // console.log(ownProjectile.type,ownProjectile.weaknesses,ownProjectile.weaknesses.includes(enemyProjectile.type))
-      // console.log(enemyProjectile.type,enemyProjectile.weaknesses,enemyProjectile.weaknesses.includes(ownProjectile.type))
+      console.log(ownProjectile.type,ownProjectile.weaknesses,ownProjectile.weaknesses.includes(enemyProjectile.type))
+      console.log(enemyProjectile.type,enemyProjectile.weaknesses,enemyProjectile.weaknesses.includes(ownProjectile.type))
       if(ownProjectile.weaknesses.includes(enemyProjectile.type)){
         ownProjectile.destroy();
       }
       if(enemyProjectile.weaknesses.includes(ownProjectile.type)){
-        enemyProjectile.destroy();
+        enemyProjectile.destroyOrb();
       }
     }, null, scene);
+
+    scene.physics.add.overlap(this,scene.bases,function(ownProjectile, base){
+      let damaged = false;
+      if(!base.orb){
+        damaged = true;
+        base.hp = Math.max(base.hp-ownProjectile.level,0);
+      }
+      else{
+        if(base.orb.weaknesses.includes(ownProjectile.type)){
+          damaged = true;
+          base.hp = Math.max(base.hp-ownProjectile.level,0);
+        }
+      }
+      console.log("base",base.hp)
+      ownProjectile.destroyOrb();
+      if(damaged){
+        base.hpGui.setText(base.hp);
+        this.socket.emit('baseDamage',{baseId:base.baseId,hp:base.hp});
+      }
+    }, null, scene);//projectile-base
 
     // this.setActive(true);
     // this.setVisible(true);

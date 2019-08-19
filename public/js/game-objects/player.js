@@ -17,6 +17,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   init(scene, x, y){
     this.x = x;
     this.y = y;
+    this.side = x <= 400 ? "left" : "right";
     this.axis = new Phaser.Math.Vector2();
     this.speed = 100;
     this.setScale(2);
@@ -67,7 +68,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       DOWN: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
       LEFT: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
       RIGHT: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
-      CHANGE: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q)
+      CHANGE: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q),
+      INTERACT: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E)
     }
 
     scene.input.on('pointerdown', function(pointer){
@@ -200,6 +202,29 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       // mage.updateHpValue();
     }, null, scene);//player-projectile overlap
 //*/
+
+    scene.physics.add.overlap(this,scene.bases,function(mage, base){
+      if(Phaser.Input.Keyboard.JustDown(mage.keys.INTERACT) && mage.orb1 && !mage.charging){
+        let temp = base.orb;
+        base.orb = mage.orb1;
+        base.orb.x = base.x;
+        base.orb.y = base.y;
+
+        if(temp){
+          mage.orb1 = temp;
+        }
+        else if(!temp && mage.orb2){
+          mage.orb1 = mage.orb2;
+          mage.orb2 = null;
+        }
+        else if(!temp && !mage.orb2){
+          mage.orb1 = null;
+        }
+
+        this.socket.emit('baseInteract',base.baseId);
+        // console.log("base:",base.orb,"mage orb1",mage.orb1)
+      }
+    }, null, scene);//base overlap
 
     scene.physics.add.overlap(scene.enemyMages,scene.ownProjectiles,function(enemy, projectile){
       scene.socket.emit('playerHit', {projectileId: projectile.id,playerId: enemy.playerId});
